@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Le petit Abel apprend le piano</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6a6fd8">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7313613931904605" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-a: #fff6e9;
+    --sky-b: #ffe9d6;
+    --ink: #3a2e5c;
+    --ink-soft: #6b5f94;
+    --card: #ffffff;
+    --card-line: #f0e6ff;
+    --shadow: rgba(90, 60, 130, 0.18);
+    --vert-ok: #43a047;
+    --rouge-non: #e53935;
+
+    --do:   #ef5350;
+    --re:   #ff9e43;
+    --mi:   #ffd23f;
+    --fa:   #66c46b;
+    --sol:  #4bb8e6;
+    --la:   #6a6fd8;
+    --si:   #b36bd4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --sky-a: #221a3d; --sky-b: #2c2154; --ink: #f3eeff; --ink-soft: #cabdf0;
+      --card: #2f2555; --card-line: #4a3c86; --shadow: rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --sky-a: #221a3d; --sky-b: #2c2154; --ink: #f3eeff; --ink-soft: #cabdf0;
+    --card: #2f2555; --card-line: #4a3c86; --shadow: rgba(0,0,0,0.4);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family: 'Quicksand', 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+    min-height: 100vh;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 20px 14px 40px;
+    overflow-x: hidden;
+  }
+  .app{ width:100%; max-width: 760px; }
+
+  /* ---------- Abel + bulle ---------- */
+  .zone-abel{
+    display:flex;
+    align-items:flex-end;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .abel-svg{ flex-shrink:0; filter: drop-shadow(0 6px 10px var(--shadow)); }
+  .bulle{
+    position:relative;
+    background: var(--card);
+    border: 2px solid var(--card-line);
+    border-radius: 20px;
+    padding: 12px 16px;
+    flex:1;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink);
+    box-shadow: 0 8px 18px var(--shadow);
+    min-height: 20px;
+  }
+  .bulle::before{
+    content:'';
+    position:absolute;
+    left: -8px; bottom: 16px;
+    width: 16px; height:16px;
+    background: var(--card);
+    border-left: 2px solid var(--card-line);
+    border-bottom: 2px solid var(--card-line);
+    transform: rotate(45deg);
+  }
+  .mute-btn{
+    background: var(--card);
+    border: 2px solid var(--card-line);
+    border-radius: 50%;
+    width:40px; height:40px;
+    font-size:16px;
+    cursor:pointer;
+    box-shadow: 0 4px 10px var(--shadow);
+    flex-shrink:0;
+    align-self: flex-start;
+  }
+
+  header{ text-align:center; margin-bottom: 6px; }
+  .titre{
+    font-family:'Fredoka', sans-serif;
+    font-weight:700;
+    font-size: clamp(22px, 5.4vw, 32px);
+    margin: 0 0 14px;
+  }
+
+  .onglets{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    margin: 4px 0 20px;
+    flex-wrap: wrap;
+  }
+  .onglet{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--card);
+    border: 2px solid var(--card-line);
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor:pointer;
+    box-shadow: 0 4px 10px var(--shadow);
+  }
+  .onglet.actif{
+    color:#fff;
+    background: linear-gradient(135deg, var(--la), var(--sol));
+    border-color: transparent;
+  }
+
+  .panneau{ display:none; }
+  .panneau.actif{ display:block; }
+
+  .carte{
+    background: var(--card);
+    border-radius: 26px;
+    padding: 22px 18px 26px;
+    box-shadow: 0 20px 40px var(--shadow);
+    border: 2px solid var(--card-line);
+  }
+
+  .clavier{
+    display:flex;
+    gap: 7px;
+    justify-content:center;
+    align-items:flex-end;
+  }
+  .touche{
+    flex: 1 1 0;
+    max-width: 74px;
+    height: 140px;
+    border: none;
+    border-radius: 14px 14px 20px 20px;
+    color: #fff;
+    font-family:'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding-bottom: 12px;
+    cursor: pointer;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.18), 0 10px 18px var(--shadow);
+    transition: transform 0.08s, box-shadow 0.08s, filter 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .touche:active, .touche.appuyee{
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.18), 0 4px 10px var(--shadow);
+    filter: brightness(1.18);
+  }
+  .touche.cible::after{
+    content:'👆';
+    position:absolute;
+    top:-30px; left:50%; transform: translateX(-50%);
+    font-size: 20px;
+    animation: rebondit 0.9s infinite;
+  }
+  @keyframes rebondit{ 0%,100%{ transform: translateX(-50%) translateY(0);} 50%{ transform: translateX(-50%) translateY(-6px);} }
+
+  .touche.do{ background: linear-gradient(180deg, #ff8a87, var(--do)); }
+  .touche.re{ background: linear-gradient(180deg, #ffb96f, var(--re)); }
+  .touche.mi{ background: linear-gradient(180deg, #ffe082, var(--mi)); color:#5c4a00; }
+  .touche.fa{ background: linear-gradient(180deg, #8fdb93, var(--fa)); }
+  .touche.sol{ background: linear-gradient(180deg, #7fd0f2, var(--sol)); }
+  .touche.la{ background: linear-gradient(180deg, #9498e8, var(--la)); }
+  .touche.si{ background: linear-gradient(180deg, #d195e8, var(--si)); }
+
+  .regle{
+    text-align:center;
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 13px;
+    margin: 18px 0 0;
+    line-height: 1.5;
+  }
+
+  .jeu-en-tete{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; }
+  .stat{ text-align:center; }
+  .stat .valeur{ font-family:'Fredoka', sans-serif; font-weight:700; font-size: 22px; color: var(--ink); }
+  .stat .label{ font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+  .message-jeu{ text-align:center; font-family:'Fredoka', sans-serif; font-weight: 600; font-size: 16px; min-height: 24px; margin-bottom: 10px; }
+  .bouton-jeu{
+    display:block; margin: 16px auto 0; font-family:'Fredoka', sans-serif; font-weight: 700; font-size: 14px;
+    color: #fff; background: linear-gradient(135deg, var(--fa), var(--sol)); border: none; border-radius: 14px;
+    padding: 11px 24px; cursor: pointer; box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+  }
+  .bouton-jeu:active{ transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,0.15); }
+
+  /* ---------- Quiz ---------- */
+  .quiz-progression{ display:flex; gap:5px; justify-content:center; margin-bottom: 16px; }
+  .puce{ width: 10px; height:10px; border-radius:50%; background: var(--card-line); }
+  .puce.faite{ background: var(--fa); }
+  .puce.ratee{ background: var(--rouge-non); }
+  .quiz-question{
+    font-family:'Fredoka', sans-serif; font-weight:700; font-size: 18px; text-align:center; margin-bottom: 18px;
+  }
+  .quiz-options{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .quiz-opt{
+    font-family:'Quicksand', sans-serif; font-weight: 700; font-size: 15px; color:#fff;
+    background: linear-gradient(135deg, #8b93f0, #6a6fd8); border:none; border-radius: 14px; padding: 16px 10px;
+    cursor:pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+  }
+  .quiz-opt:active{ transform: translateY(2px); box-shadow: 0 3px 0 rgba(0,0,0,0.15); }
+  .quiz-opt.bonne{ background: linear-gradient(135deg, #66bb6a, var(--vert-ok)) !important; }
+  .quiz-opt.mauvaise{ background: linear-gradient(135deg, #ef5350, var(--rouge-non)) !important; }
+  .quiz-opt[disabled]{ cursor: default; }
+  .quiz-fin{ text-align:center; }
+  .quiz-fin .score{ font-family:'Fredoka', sans-serif; font-weight:700; font-size: 30px; margin: 10px 0; }
+
+  /* ---------- Partitions ---------- */
+  .liste-chansons{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom: 18px; }
+  .chanson-btn{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:13px; color: var(--ink);
+    background: var(--sky-a); border: 2px solid var(--card-line); border-radius: 999px; padding: 8px 16px; cursor:pointer;
+  }
+  .chanson-btn.actif{ color:#fff; background: linear-gradient(135deg, var(--re), var(--mi)); border-color:transparent; }
+  .partition-ligne{
+    display:flex; gap: 6px; overflow-x:auto; padding: 6px 4px 14px;
+    scroll-behavior: smooth;
+  }
+  .note-bulle{
+    flex-shrink:0; width: 40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka', sans-serif; font-weight:700; font-size:12px; color:#fff; opacity:0.55; transition: all 0.2s;
+    border: 3px solid transparent;
+  }
+  .note-bulle.faite{ opacity: 1; }
+  .note-bulle.courante{ opacity:1; transform: scale(1.25); border-color: var(--ink); }
+  .note-bulle.do{ background:var(--do);} .note-bulle.re{ background:var(--re);} .note-bulle.mi{ background:var(--mi); color:#5c4a00;}
+  .note-bulle.fa{ background:var(--fa);} .note-bulle.sol{ background:var(--sol);} .note-bulle.la{ background:var(--la);} .note-bulle.si{ background:var(--si);}
+  .partition-progres{ text-align:center; font-weight:700; color: var(--ink-soft); font-size:13px; margin-bottom: 14px; }
+
+  .etincelle{ position: fixed; font-size: 22px; pointer-events:none; animation: monteEtDisparait 0.7s ease-out forwards; z-index: 500; }
+  @keyframes monteEtDisparait{ 0%{ opacity:1; transform: translateY(0) scale(0.8);} 100%{ opacity:0; transform: translateY(-50px) scale(1.3);} }
+
+  .hidden{ display:none !important; }
+
+  .badges-grille{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .badge-carte{
+    display:flex; align-items:center; gap:10px; padding: 12px; border-radius: 16px;
+    background: var(--sky-a); border: 2px solid var(--card-line); opacity: 0.5; filter: grayscale(1);
+  }
+  .badge-carte.obtenu{ opacity: 1; filter: none; background: linear-gradient(135deg, #fff8ea, #ffffff); border-color: #ffd23f; }
+  .badge-icone{ font-size: 26px; flex-shrink:0; }
+  .badge-nom{ font-family:'Fredoka', sans-serif; font-weight:700; font-size: 13px; color: var(--ink); }
+  .badge-desc{ font-size: 11px; color: var(--ink-soft); font-weight:600; }
+
+  @media (max-width: 420px){ .badges-grille{ grid-template-columns: 1fr; } }
+
+  footer{ text-align:center; margin-top: 22px; color: var(--ink-soft); font-size: 12px; font-weight: 600; }
+
+  @media (max-width: 420px){
+    .touche{ height: 112px; font-size: 11px; }
+    .quiz-options{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="zone-abel">
+    <svg class="abel-svg" width="64" height="72" viewBox="0 0 120 140">
+      <ellipse cx="60" cy="128" rx="34" ry="10" fill="rgba(0,0,0,0.08)"/>
+      <path d="M28 138 L28 100 Q28 82 60 82 Q92 82 92 100 L92 138 Z" fill="#4bb8e6"/>
+      <path d="M28 138 L28 110 Q40 122 60 122 Q80 122 92 110 L92 138 Z" fill="#3aa0d6"/>
+      <circle cx="60" cy="52" r="34" fill="#f5c99b"/>
+      <path d="M26 48 Q26 14 60 14 Q94 14 94 48 Q88 32 60 30 Q32 32 26 48 Z" fill="#5b3d2b"/>
+      <circle cx="46" cy="54" r="5" fill="#3a2e5c"/>
+      <circle cx="74" cy="54" r="5" fill="#3a2e5c"/>
+      <ellipse cx="38" cy="64" rx="6" ry="4" fill="#ff9e9e" opacity="0.7"/>
+      <ellipse cx="82" cy="64" rx="6" ry="4" fill="#ff9e9e" opacity="0.7"/>
+      <path d="M46 70 Q60 82 74 70" stroke="#5c4a3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="bulle" id="bulle"></div>
+    <button class="mute-btn" id="btnRetour" title="Retour à l'accueil" onclick="allerA('libre')" style="margin-right:-2px;">⬅️</button>
+    <button class="mute-btn" id="btnMute" title="Couper le son">🔊</button>
+  </div>
+
+  <header>
+    <h1 class="titre">Le petit Abel apprend le piano</h1>
+    <p id="dateJour" style="text-align:center; color:var(--ink-soft); font-weight:700; font-size:12px; margin:-8px 0 14px;"></p>
+  </header>
+
+  <div class="onglets">
+    <button class="onglet actif" data-p="libre" onclick="allerA('libre')">🎹 Piano</button>
+    <button class="onglet" data-p="jeu" onclick="allerA('jeu')">🎮 Mémoire</button>
+    <button class="onglet" data-p="quiz" onclick="allerA('quiz')">📖 Quiz</button>
+    <button class="onglet" data-p="partitions" onclick="allerA('partitions')">🎼 Partitions</button>
+    <button class="onglet" data-p="badges" onclick="allerA('badges')">🏅 Badges</button>
+  </div>
+
+  <!-- PIANO LIBRE -->
+  <div class="panneau actif" id="panneau-libre">
+    <div class="carte">
+      <div id="porteeLibre" style="margin-bottom:6px;"></div>
+      <div class="clavier" id="clavierLibre"></div>
+    </div>
+    <p class="regle">Touche une couleur pour jouer une note. Abel t'écoute jouer !</p>
+  </div>
+
+  <!-- JEU DE MEMOIRE -->
+  <div class="panneau" id="panneau-jeu">
+    <div class="carte">
+      <div class="jeu-en-tete">
+        <div class="stat"><div class="valeur" id="statNiveau">0</div><div class="label">NIVEAU</div></div>
+        <div class="stat"><div class="valeur" id="statRecord">0</div><div class="label">RECORD</div></div>
+      </div>
+      <div class="message-jeu" id="messageJeu">Prêt à jouer ?</div>
+      <div class="clavier" id="clavierJeu"></div>
+      <button class="bouton-jeu" id="btnJouer" onclick="demarrerJeu()">▶️ Commencer</button>
+    </div>
+    <p class="regle">Regarde et écoute la mélodie, puis rejoue-la dans le même ordre !</p>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="panneau" id="panneau-quiz">
+    <div class="carte" id="carteQuiz"></div>
+  </div>
+
+  <!-- PARTITIONS -->
+  <div class="panneau" id="panneau-partitions">
+    <div class="liste-chansons" id="listeChansons"></div>
+    <div id="recordChansonActuelle" style="text-align:center; font-weight:700; color:var(--ink-soft); font-size:13px; margin-bottom:14px;"></div>
+
+    <div class="carte" id="zoneMainDroitePartition" style="margin-bottom:14px;">
+      <p class="regle" style="margin-top:0; font-weight:700; color:var(--ink);">🖐️ Main droite</p>
+      <div class="partition-progres" id="partitionProgresA">Note 0 / 0</div>
+      <div class="zone-scroll-portee" id="zonePorteePartitionA" style="overflow-x:auto; margin-bottom:10px;"></div>
+      <div class="partition-ligne" id="partitionLigneA"></div>
+      <div class="clavier" id="clavierPartitionA" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="carte" id="zoneMainGauchePartition" style="margin-bottom:14px;">
+      <p class="regle" style="margin-top:0; font-weight:700; color:var(--ink);">✋ Main gauche</p>
+      <div class="partition-progres" id="partitionProgresB">Note 0 / 0</div>
+      <div class="zone-scroll-portee" id="zonePorteePartitionB" style="overflow-x:auto; margin-bottom:10px;"></div>
+      <div class="partition-ligne" id="partitionLigneB"></div>
+      <div class="clavier" id="clavierPartitionB" style="margin-top:16px;"></div>
+    </div>
+
+    <button class="bouton-jeu" id="btnEcouter" onclick="jouerDemoChanson()">🔊 Écouter la mélodie</button>
+    <p class="regle">Regarde la portée et les bulles colorées, écoute la chanson, puis rejoue-la sur le clavier !</p>
+  </div>
+
+  <!-- BADGES -->
+  <div class="panneau" id="panneau-badges">
+    <div class="carte">
+      <p style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px; text-align:center; margin-top:0;">🏅 Mes badges</p>
+      <div class="badges-grille" id="listeBadges"></div>
+    </div>
+  </div>
+
+  <ins class="adsbygoogle"
+       style="display:block; margin-top:18px;"
+       data-ad-client="ca-pub-7313613931904605"
+       data-ad-slot="9758963105"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <footer>© danny</footer>
+</div>
+
+<script>
+/* ===================== BASE : NOTES + SON ===================== */
+const NOTES = [
+  { nom:'Do',  classe:'do',  freq: 261.63 },
+  { nom:'Ré',  classe:'re',  freq: 293.66 },
+  { nom:'Mi',  classe:'mi',  freq: 329.63 },
+  { nom:'Fa',  classe:'fa',  freq: 349.23 },
+  { nom:'Sol', classe:'sol', freq: 392.00 },
+  { nom:'La',  classe:'la',  freq: 440.00 },
+  { nom:'Si',  classe:'si',  freq: 493.88 },
+];
+function indexParClasse(classe){ return NOTES.findIndex(n => n.classe === classe); }
+
+const FREQ_BASSE = { do:130.81, re:146.83, mi:164.81, fa:174.61, sol:196.00, la:220.00, si:246.94 };
+const BASS_NOTES = NOTES.map(n => ({ nom:n.nom, classe:n.classe, freq: FREQ_BASSE[n.classe] }));
+
+const COULEURS_NOTES = { do:'#ef5350', re:'#ff9e43', mi:'#ffd23f', fa:'#66c46b', sol:'#4bb8e6', la:'#6a6fd8', si:'#b36bd4' };
+const POSITIONS_PORTEE_SOL = { do:120, re:112, mi:104, fa:96, sol:88, la:80, si:72 };
+const POSITIONS_PORTEE_FA  = { si:32, la:40, sol:48, fa:56, mi:64, re:72, do:80 };
+
+function ligneStaffSVG(largeur){
+  let lignes = '';
+  for(let ly = 40; ly <= 104; ly += 16){
+    lignes += `<line x1="10" y1="${ly}" x2="${largeur-10}" y2="${ly}" stroke="#8677b3" stroke-width="2"/>`;
+  }
+  return lignes;
+}
+const TRACE_CLE_SOL = "M434 -2Q464 103 464 170Q464 223 427.0 257.0Q390 291 337 291Q287 291 250.0 261.5Q213 232 213 190Q213 160 233.5 133.5Q254 107 283.5 107.0Q313 107 331.5 128.5Q350 150 350 178Q350 240 280 240Q298 268 338 268Q353 268 368.5 263.5Q384 259 401.0 248.0Q418 237 428.5 213.5Q439 190 439 157Q439 136 411 6Q389 12 356 12Q259 12 189.5 -60.0Q120 -132 120 -232Q120 -267 131.5 -303.0Q143 -339 157.5 -366.5Q172 -394 200.5 -428.5Q229 -463 248.5 -483.5Q268 -504 303 -539Q280 -621 280 -689Q280 -779 313.0 -839.5Q346 -900 379 -900Q389 -900 401.5 -887.0Q414 -874 426.0 -851.0Q438 -828 446.5 -790.5Q455 -753 455 -710Q455 -551 342 -447L368 -329Q384 -332 397 -332Q458 -332 500.0 -282.5Q542 -233 542 -162Q542 -44 434 -2ZM426 -746Q426 -801 394 -801Q358 -801 333.0 -748.0Q308 -695 308 -630Q308 -588 321 -557Q359 -580 392.5 -639.5Q426 -699 426 -746ZM498 -128Q498 -183 466.0 -216.0Q434 -249 383 -249L428 -23Q498 -52 498 -128ZM407 -17 361 -247Q334 -241 311.5 -214.0Q289 -187 289 -158Q289 -143 295.0 -128.5Q301 -114 309.5 -104.0Q318 -94 327.0 -86.0Q336 -78 342.0 -74.5Q348 -71 348 -71L340 -66Q307 -75 277.5 -106.0Q248 -137 248 -184Q248 -231 277.5 -270.5Q307 -310 343 -323L325 -430Q168 -299 168 -177Q168 -104 223.0 -55.0Q278 -6 348 -6Q365 -6 407 -17Z";
+const TRACE_CLE_FA = "M564 -704Q582 -704 594.5 -691.0Q607 -678 607.0 -661.0Q607 -644 593.0 -631.0Q579 -618 563 -618Q521 -618 521 -663Q521 -681 534.0 -692.5Q547 -704 564 -704ZM607 -469Q607 -450 594.0 -437.0Q581 -424 564 -424Q521 -424 521 -469Q521 -485 533.5 -498.0Q546 -511 564.0 -511.0Q582 -511 594.5 -497.0Q607 -483 607 -469ZM285 -757Q366 -757 421.0 -701.5Q476 -646 476 -569Q476 -531 465.5 -495.0Q455 -459 432.0 -426.5Q409 -394 386.0 -367.0Q363 -340 326.0 -313.0Q289 -286 264.0 -267.5Q239 -249 196.5 -226.0Q154 -203 135.5 -193.5Q117 -184 80 -166L75 -182Q76 -183 102.0 -200.0Q128 -217 144.0 -227.5Q160 -238 191.5 -263.0Q223 -288 244.0 -309.5Q265 -331 291.5 -363.5Q318 -396 334.0 -427.0Q350 -458 361.5 -498.0Q373 -538 373 -578Q373 -735 262 -735Q225 -735 199.0 -725.5Q173 -716 161.5 -702.0Q150 -688 145.0 -677.5Q140 -667 140 -659Q140 -644 160 -644Q168 -644 179.0 -647.5Q190 -651 194 -651Q221 -651 239.0 -634.0Q257 -617 257 -592Q257 -563 235.0 -544.0Q213 -525 183 -525Q144 -525 119.0 -548.0Q94 -571 94 -607Q94 -673 150.5 -715.0Q207 -757 285 -757Z";
+
+function iconeClef(clef, x){
+  if(clef === 'fa'){
+    const echelle = 0.068, ty = 89.48, tx = x - 75 * echelle;
+    return `<path d="${TRACE_CLE_FA}" fill="#6b5f94" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
+  }
+  const echelle = 0.087, ty = 92.6, tx = x - 120 * echelle;
+  return `<path d="${TRACE_CLE_SOL}" fill="#6b5f94" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
+}
+
+function svgPortee(classeNote, clef){
+  clef = clef || 'sol';
+  const positions = clef === 'fa' ? POSITIONS_PORTEE_FA : POSITIONS_PORTEE_SOL;
+  const y = positions[classeNote];
+  const ledger = (clef === 'sol' && classeNote === 'do') ? `<line x1="94" y1="120" x2="126" y2="120" stroke="#8677b3" stroke-width="2"/>` : '';
+  return `<svg width="220" height="150" viewBox="0 0 220 150" style="display:block;margin:0 auto 14px;">
+    ${ligneStaffSVG(220)}
+    <line x1="26" y1="40" x2="26" y2="104" stroke="#8677b3" stroke-width="3"/>
+    ${iconeClef(clef, 34)}
+    ${ledger}
+    <ellipse cx="110" cy="${y}" rx="9" ry="7" fill="${COULEURS_NOTES[classeNote]}" transform="rotate(-15 110 ${y})"/>
+  </svg>`;
+}
+
+function svgPorteeSequence(sequenceClasses, indexActif, clef){
+  clef = clef || 'sol';
+  const positions = clef === 'fa' ? POSITIONS_PORTEE_FA : POSITIONS_PORTEE_SOL;
+  const pas = 36, marge = 46;
+  const largeur = marge + 20 + pas * sequenceClasses.length;
+  let notesHTML = '';
+  sequenceClasses.forEach((classe, i) => {
+    const x = marge + i * pas + pas / 2;
+    const y = positions[classe];
+    const estActif = i === indexActif;
+    const estFaite = i < indexActif;
+    const ledger = (clef === 'sol' && classe === 'do') ? `<line x1="${x-13}" y1="120" x2="${x+13}" y2="120" stroke="#8677b3" stroke-width="2"/>` : '';
+    const halo = estActif ? `<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="${COULEURS_NOTES[classe]}" stroke-width="2.5" opacity="0.6"/>` : '';
+    const rayon = estActif ? 10 : 8;
+    const opacite = estFaite ? 0.4 : (estActif ? 1 : 0.9);
+    notesHTML += `${ledger}${halo}<ellipse cx="${x}" cy="${y}" rx="${rayon}" ry="${rayon-2}" fill="${COULEURS_NOTES[classe]}" opacity="${opacite}" transform="rotate(-15 ${x} ${y})"/>`;
+  });
+  return { largeur, svg: `<svg width="${largeur}" height="150" viewBox="0 0 ${largeur} 150" style="display:block;">
+    ${ligneStaffSVG(largeur)}
+    <line x1="10" y1="40" x2="10" y2="104" stroke="#8677b3" stroke-width="3"/>
+    ${iconeClef(clef, 16)}
+    ${notesHTML}
+  </svg>` };
+}
+
+let audioCtx = null;
+
+/* ===================== BADGES ===================== */
+const BADGES = [
+  { id:'premiere_note', icone:'🎵', nom:'Première note', desc:'Joue ta toute première note.' },
+  { id:'explorateur', icone:'🌈', nom:'Explorateur des couleurs', desc:'Essaie les 7 notes colorées.' },
+  { id:'melodie_memoire_5', icone:'🧠', nom:'Bonne mémoire', desc:'Atteins le niveau 5 du jeu de mémoire.' },
+  { id:'chanson_droite', icone:'🖐️', nom:'Petit pianiste', desc:'Termine une chanson main droite.' },
+  { id:'chanson_gauche', icone:'✋', nom:'Petit bassiste', desc:'Termine une chanson main gauche.' },
+  { id:'duo', icone:'🎼', nom:'Chef d\'orchestre', desc:'Termine une chanson à deux mains.' },
+  { id:'quiz_facile', icone:'🌱', nom:'Débutant en théorie', desc:'Termine le quiz niveau facile.' },
+  { id:'quiz_moyen', icone:'⭐', nom:'Bonne oreille', desc:'Termine le quiz niveau moyen.' },
+  { id:'quiz_fort', icone:'🔥', nom:'Lecteur de partition', desc:'Termine le quiz niveau fort.' },
+];
+let badgesObtenus = [];
+try{ badgesObtenus = JSON.parse(localStorage.getItem('abel_badges') || '[]'); }catch(e){ badgesObtenus = []; }
+
+function debloquerBadge(id){
+  if(badgesObtenus.includes(id)) return;
+  badgesObtenus.push(id);
+  try{ localStorage.setItem('abel_badges', JSON.stringify(badgesObtenus)); }catch(e){}
+  const badge = BADGES.find(b => b.id === id);
+  if(badge) parlerAbel('Bravo champion, nouveau badge débloqué : ' + badge.nom + ' !');
+  const panneauBadges = document.getElementById('panneau-badges');
+  if(panneauBadges && panneauBadges.classList.contains('actif')) afficherBadges();
+}
+
+function afficherBadges(){
+  const conteneur = document.getElementById('listeBadges');
+  conteneur.innerHTML = BADGES.map(b => {
+    const obtenu = badgesObtenus.includes(b.id);
+    return `<div class="badge-carte ${obtenu ? 'obtenu' : ''}">
+      <div class="badge-icone">${b.icone}</div>
+      <div><div class="badge-nom">${b.nom}</div><div class="badge-desc">${b.desc}</div></div>
+    </div>`;
+  }).join('');
+}
+
+let notesExplorees = new Set();
+try{ notesExplorees = new Set(JSON.parse(localStorage.getItem('abel_notes_explorees') || '[]')); }catch(e){}
+function noterNoteExploree(classe){
+  if(notesExplorees.has(classe)) return;
+  notesExplorees.add(classe);
+  try{ localStorage.setItem('abel_notes_explorees', JSON.stringify(Array.from(notesExplorees))); }catch(e){}
+  if(notesExplorees.size === 7) debloquerBadge('explorateur');
+}
+
+let sonCoupe = false;
+
+function obtenirContexte(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function jouerNote(freq){
+  if(sonCoupe) return;
+  const ctx = obtenirContexte();
+  const t = ctx.currentTime;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.28, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+  gain.connect(ctx.destination);
+  const osc1 = ctx.createOscillator(); osc1.type='sine'; osc1.frequency.value=freq; osc1.connect(gain);
+  const osc2 = ctx.createOscillator(); osc2.type='triangle'; osc2.frequency.value=freq*2;
+  const gain2 = ctx.createGain(); gain2.gain.value=0.06; osc2.connect(gain2); gain2.connect(ctx.destination);
+  osc1.start(t); osc2.start(t); osc1.stop(t+0.9); osc2.stop(t+0.9);
+}
+
+/* ===================== ABEL : VOIX + BULLE ===================== */
+let voixFR = null;
+if('speechSynthesis' in window){
+  function chargerVoix(){
+    const voix = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+    // On cherche une voix française masculine reconnaissable par son nom (ex : Thomas, Paul, Nicolas...)
+    const prenomsMasculins = ['thomas','paul','nicolas','antoine','daniel','louis','henri','guillaume','pierre','male','homme'];
+    voixFR = voix.find(v => prenomsMasculins.some(p => v.name.toLowerCase().includes(p))) || voix[0] || null;
+  }
+  chargerVoix();
+  window.speechSynthesis.onvoiceschanged = chargerVoix;
+}
+
+// Anti-coupure Chrome/Android : la synthèse vocale s'arrête parfois seule après ~14s.
+// On la "réveille" en boucle tant qu'elle parle, pour ne jamais couper une phrase en cours.
+let gardienVocal = null;
+function demarrerGardienVocal(){
+  if(gardienVocal) return;
+  gardienVocal = setInterval(() => {
+    if(window.speechSynthesis.speaking){
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    } else {
+      clearInterval(gardienVocal);
+      gardienVocal = null;
+    }
+  }, 4000);
+}
+
+function parlerAbel(texte){
+  const bulle = document.getElementById('bulle');
+  bulle.textContent = texte;
+  if(sonCoupe || !('speechSynthesis' in window)) return;
+  // On NE coupe PAS la phrase en cours : la nouvelle phrase attend son tour dans la file.
+  const u = new SpeechSynthesisUtterance(texte);
+  u.lang = 'fr-FR';
+  u.rate = 1.05;
+  u.pitch = 1.6;
+  if(voixFR) u.voice = voixFR;
+  window.speechSynthesis.speak(u);
+  demarrerGardienVocal();
+}
+
+document.getElementById('btnMute').addEventListener('click', function(){
+  sonCoupe = !sonCoupe;
+  this.textContent = sonCoupe ? '🔇' : '🔊';
+  if(sonCoupe && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+});
+
+document.addEventListener('pointerdown', function premierGeste(){
+  document.removeEventListener('pointerdown', premierGeste);
+  parlerAbel("Salut champion ! J'apprends le piano avec toi. Choisis un mode pour commencer !");
+}, { once:true });
+
+/* ===================== OUTILS VISUELS ===================== */
+function flashTouche(bouton){
+  bouton.classList.add('appuyee');
+  setTimeout(() => bouton.classList.remove('appuyee'), 160);
+}
+function etincelleAu(element){
+  const rect = element.getBoundingClientRect();
+  const e = document.createElement('div');
+  e.className = 'etincelle';
+  e.textContent = ['✨','⭐','🎵','💫'][Math.floor(Math.random()*4)];
+  e.style.left = (rect.left + rect.width/2 - 10) + 'px';
+  e.style.top = rect.top + 'px';
+  document.body.appendChild(e);
+  setTimeout(() => e.remove(), 700);
+}
+function creerClavier(conteneurId, onAppui){
+  const conteneur = document.getElementById(conteneurId);
+  conteneur.innerHTML = '';
+  NOTES.forEach((note, index) => {
+    const bouton = document.createElement('button');
+    bouton.className = 'touche ' + note.classe;
+    bouton.textContent = note.nom;
+    bouton.dataset.index = index;
+    bouton.addEventListener('pointerdown', () => onAppui(index, bouton));
+    conteneur.appendChild(bouton);
+  });
+  return conteneur;
+}
+
+/* ===================== NAVIGATION ===================== */
+function allerA(nom){
+  document.querySelectorAll('.onglet').forEach(o => o.classList.toggle('actif', o.dataset.p === nom));
+  document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'panneau-' + nom));
+  if(nom === 'quiz' && !quizDemarre) afficherAccueilQuiz();
+  if(nom === 'partitions' && !partitionInitialisee){ initPartitions(); }
+  if(nom === 'badges') afficherBadges();
+}
+
+/* ===================== PIANO LIBRE ===================== */
+creerClavier('clavierLibre', (index, bouton) => {
+  jouerNote(NOTES[index].freq);
+  flashTouche(bouton);
+  etincelleAu(bouton);
+  document.getElementById('porteeLibre').innerHTML = svgPortee(NOTES[index].classe);
+  debloquerBadge('premiere_note');
+  noterNoteExploree(NOTES[index].classe);
+});
+document.getElementById('porteeLibre').innerHTML = svgPortee('do');
+
+/* ===================== JEU DE MEMOIRE ===================== */
+let sequence = [], positionJoueur = 0, jeuActif = false, enDemonstration = false, record = 0;
+try{ record = parseInt(localStorage.getItem('abel_piano_record') || '0', 10) || 0; }catch(e){}
+document.getElementById('statRecord').textContent = record;
+
+creerClavier('clavierJeu', (index, bouton) => {
+  if(!jeuActif || enDemonstration) return;
+  jouerNote(NOTES[index].freq);
+  flashTouche(bouton);
+  if(index === sequence[positionJoueur]){
+    positionJoueur++;
+    if(positionJoueur === sequence.length){
+      document.getElementById('messageJeu').textContent = '🎉 Bravo !';
+      if(sequence.length % 3 === 0) parlerAbel('Bravo champion, tu as une super mémoire !');
+      if(sequence.length >= 5) debloquerBadge('melodie_memoire_5');
+      setTimeout(ajouterNote, 700);
+    }
+  } else {
+    finDeJeu();
+  }
+});
+function demarrerJeu(){
+  sequence = []; positionJoueur = 0; jeuActif = true;
+  document.getElementById('btnJouer').textContent = '🔁 Recommencer';
+  document.getElementById('statNiveau').textContent = '0';
+  parlerAbel('C\'est parti, regarde bien la mélodie !');
+  ajouterNote();
+}
+function ajouterNote(){
+  sequence.push(Math.floor(Math.random() * NOTES.length));
+  positionJoueur = 0;
+  document.getElementById('statNiveau').textContent = sequence.length;
+  document.getElementById('messageJeu').textContent = 'Regarde bien...';
+  jouerSequence();
+}
+function jouerSequence(){
+  enDemonstration = true;
+  const boutons = document.querySelectorAll('#clavierJeu .touche');
+  let i = 0;
+  const intervalle = setInterval(() => {
+    const idx = sequence[i];
+    jouerNote(NOTES[idx].freq);
+    flashTouche(boutons[idx]);
+    i++;
+    if(i >= sequence.length){
+      clearInterval(intervalle);
+      setTimeout(() => { enDemonstration = false; document.getElementById('messageJeu').textContent = 'À toi de jouer !'; }, 500);
+    }
+  }, 700);
+}
+function finDeJeu(){
+  jeuActif = false;
+  const niveauAtteint = sequence.length - 1;
+  document.getElementById('messageJeu').textContent = niveauAtteint > 0
+    ? '😊 Tu as retenu ' + niveauAtteint + ' note(s). On réessaie ?' : '😊 On réessaie ?';
+  document.getElementById('btnJouer').textContent = '▶️ Recommencer';
+  parlerAbel(niveauAtteint >= 3 ? 'Bien joué champion, on refait un tour ?' : 'Pas grave champion, on réessaie ensemble !');
+  if(niveauAtteint > record){
+    record = niveauAtteint;
+    document.getElementById('statRecord').textContent = record;
+    try{ localStorage.setItem('abel_piano_record', String(record)); }catch(e){}
+  }
+}
+
+/* ===================== QUIZ DE THEORIE MUSICALE ===================== */
+function optNote(classe, estBonne){
+  const n = NOTES[indexParClasse(classe)];
+  return { t:n.nom, c:classe, ok:estBonne };
+}
+
+const BANQUE_QUIZ = [
+  // ---- FACILE ----
+  { niveau:'facile', texte:"Quelle note est rouge ?", options:[optNote('do',true),optNote('fa',false),optNote('sol',false),optNote('la',false)] },
+  { niveau:'facile', texte:"Quelle note est bleue ?", options:[optNote('sol',true),optNote('mi',false),optNote('re',false),optNote('si',false)] },
+  { niveau:'facile', texte:"Quelle note est jaune ?", options:[optNote('mi',true),optNote('do',false),optNote('la',false),optNote('fa',false)] },
+  { niveau:'facile', texte:"Quelle note est violette ?", options:[optNote('si',true),optNote('re',false),optNote('mi',false),optNote('do',false)] },
+  { niveau:'facile', texte:"Quelle note vient juste après Fa ?", options:[optNote('sol',true),optNote('mi',false),optNote('si',false),optNote('do',false)] },
+  { niveau:'facile', texte:"Quelle note vient juste après le Do quand on monte l'échelle des notes ?", options:[optNote('re',true),optNote('mi',false),optNote('si',false),optNote('sol',false)] },
+  { niveau:'facile', texte:"Une note qu'on tient longtemps est une note...", options:[{t:'Longue',ok:true},{t:'Carrée',ok:false},{t:'Froide',ok:false},{t:'Rapide',ok:false}] },
+  { niveau:'facile', texte:"Quel instrument a des touches noires et blanches ?", options:[{t:'Le piano',ok:true},{t:'La guitare',ok:false},{t:'Le tambour',ok:false},{t:'La flûte',ok:false}] },
+  { niveau:'facile', texte:"De quelles couleurs sont les touches d'un piano classique ?", options:[{t:'Noires et blanches',ok:true},{t:'Rouges et vertes',ok:false},{t:'Toutes blanches',ok:false},{t:'Toutes noires',ok:false}] },
+  { niveau:'facile', texte:"Comment fait-on sortir un son d'une touche de piano ?", options:[{t:'En appuyant avec le doigt',ok:true},{t:'En soufflant dedans',ok:false},{t:'En la secouant',ok:false},{t:'En la pinçant',ok:false}] },
+
+  // ---- MOYEN ----
+  { niveau:'moyen', texte:"Quelle note vient juste avant Si ?", options:[optNote('la',true),optNote('sol',false),optNote('do',false),optNote('re',false)] },
+  { niveau:'moyen', texte:"Combien y a-t-il de notes, de Do à Si ?", options:[{t:'5',ok:false},{t:'7',ok:true},{t:'9',ok:false},{t:'3',ok:false}] },
+  { niveau:'moyen', texte:"Un son très bas, on dit qu'il est...", options:[{t:'Grave',ok:true},{t:'Aigu',ok:false},{t:'Carré',ok:false},{t:'Sucré',ok:false}] },
+  { niveau:'moyen', texte:"Un son très haut, on dit qu'il est...", options:[{t:'Aigu',ok:true},{t:'Grave',ok:false},{t:'Lourd',ok:false},{t:'Salé',ok:false}] },
+  { niveau:'moyen', texte:"Que doit faire un musicien quand il voit un symbole de silence ?", options:[{t:'S\'arrêter de jouer',ok:true},{t:'Jouer plus fort',ok:false},{t:'Chanter',ok:false},{t:'Changer d\'instrument',ok:false}] },
+  { niveau:'moyen', texte:"Comment appelle-t-on la personne qui dirige un orchestre avec une baguette ?", options:[{t:'Le chef d\'orchestre',ok:true},{t:'Le compositeur',ok:false},{t:'Le pianiste',ok:false},{t:'Le public',ok:false}] },
+  { niveau:'moyen', texte:"Combien de lignes horizontales compte une portée musicale ?", options:[{t:'5',ok:true},{t:'3',ok:false},{t:'7',ok:false},{t:'10',ok:false}] },
+
+  // ---- FORT ----
+  { niveau:'fort', texte:"Quand une musique va « fort », quel mot italien utilise-t-on ?", options:[{t:'Forte',ok:true},{t:'Piano',ok:false},{t:'Adagio',ok:false},{t:'Legato',ok:false}] },
+  { niveau:'fort', portee:'do', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('do',true),optNote('re',false),optNote('mi',false),optNote('sol',false)] },
+  { niveau:'fort', portee:'re', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('re',true),optNote('do',false),optNote('mi',false),optNote('fa',false)] },
+  { niveau:'fort', portee:'mi', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('mi',true),optNote('re',false),optNote('fa',false),optNote('sol',false)] },
+  { niveau:'fort', portee:'fa', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('fa',true),optNote('mi',false),optNote('sol',false),optNote('la',false)] },
+  { niveau:'fort', portee:'sol', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('sol',true),optNote('fa',false),optNote('la',false),optNote('si',false)] },
+  { niveau:'fort', portee:'la', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('la',true),optNote('sol',false),optNote('si',false),optNote('do',false)] },
+  { niveau:'fort', portee:'si', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('si',true),optNote('la',false),optNote('do',false),optNote('re',false)] },
+
+  { niveau:'fort', portee:'do', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('do',true),optNote('re',false),optNote('mi',false),optNote('sol',false)] },
+  { niveau:'fort', portee:'re', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('re',true),optNote('do',false),optNote('mi',false),optNote('fa',false)] },
+  { niveau:'fort', portee:'mi', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('mi',true),optNote('re',false),optNote('fa',false),optNote('sol',false)] },
+  { niveau:'fort', portee:'fa', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('fa',true),optNote('mi',false),optNote('sol',false),optNote('la',false)] },
+  { niveau:'fort', portee:'sol', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('sol',true),optNote('fa',false),optNote('la',false),optNote('si',false)] },
+  { niveau:'fort', portee:'la', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('la',true),optNote('sol',false),optNote('si',false),optNote('do',false)] },
+  { niveau:'fort', portee:'si', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('si',true),optNote('la',false),optNote('do',false),optNote('re',false)] },
+];
+
+const NB_QUESTIONS_QUIZ = 6;
+let quizQuestions = [], quizIndex = 0, quizScore = 0, quizResultats = [], quizDemarre = false, quizNiveau = 'facile';
+
+function melanger(tableau){
+  const copie = tableau.slice();
+  for(let i = copie.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [copie[i], copie[j]] = [copie[j], copie[i]];
+  }
+  return copie;
+}
+
+const LABELS_NIVEAU = { facile:'🌱 Facile', moyen:'⭐ Moyen', fort:'🔥 Fort' };
+
+let quizRecords = { facile:0, moyen:0, fort:0 };
+try{ quizRecords = Object.assign(quizRecords, JSON.parse(localStorage.getItem('abel_quiz_records') || '{}')); }catch(e){}
+
+function afficherAccueilQuiz(){
+  quizDemarre = false;
+  const ligneRecord = (niveau) => quizRecords[niveau] > 0 ? ` (record : ${quizRecords[niveau]}/${NB_QUESTIONS_QUIZ})` : '';
+  document.getElementById('carteQuiz').innerHTML = `
+    <div class="quiz-fin">
+      <p style="font-family:'Fredoka',sans-serif;font-weight:700;font-size:18px;">🎵 Petit quiz de théorie musicale</p>
+      <p class="regle" style="margin-top:6px;">Choisis ton niveau pour commencer !</p>
+      <button class="bouton-jeu" onclick="demarrerQuiz('facile')">🌱 Facile${ligneRecord('facile')}</button>
+      <button class="bouton-jeu" style="background:linear-gradient(135deg, var(--re), var(--mi));" onclick="demarrerQuiz('moyen')">⭐ Moyen${ligneRecord('moyen')}</button>
+      <button class="bouton-jeu" style="background:linear-gradient(135deg, var(--la), var(--si));" onclick="demarrerQuiz('fort')">🔥 Fort${ligneRecord('fort')}</button>
+    </div>`;
+  parlerAbel('Choisis un niveau : facile, moyen, ou fort !');
+}
+
+function demarrerQuiz(niveau){
+  quizNiveau = niveau;
+  const banque = BANQUE_QUIZ.filter(q => q.niveau === niveau);
+  quizQuestions = melanger(banque).slice(0, Math.min(NB_QUESTIONS_QUIZ, banque.length));
+  quizIndex = 0; quizScore = 0; quizResultats = []; quizDemarre = true;
+  parlerAbel('C\'est parti pour le niveau ' + niveau + ' !');
+  afficherQuestionQuiz();
+}
+
+function afficherQuestionQuiz(){
+  const q = quizQuestions[quizIndex];
+  const puces = quizResultats.map(r => `<div class="puce ${r ? 'faite' : 'ratee'}"></div>`).join('')
+    + Array(quizQuestions.length - quizResultats.length).fill('<div class="puce"></div>').join('');
+  const optionsHTML = melanger(q.options).map((opt, i) => {
+    const classeCouleur = opt.c ? ' style="background:' + COULEURS_NOTES[opt.c] + ' !important;"' : '';
+    return `<button class="quiz-opt" data-ok="${opt.ok}"${classeCouleur} onclick="repondreQuiz(this, ${opt.ok})">${opt.t}</button>`;
+  }).join('');
+  const portee = q.portee ? svgPortee(q.portee, q.clef || 'sol') : '';
+
+  document.getElementById('carteQuiz').innerHTML = `
+    <div class="quiz-progression">${puces}</div>
+    ${portee}
+    <div class="quiz-question">${q.texte}</div>
+    <div class="quiz-options">${optionsHTML}</div>
+    <div id="zoneSuivantQuiz"></div>`;
+
+  parlerAbel(q.texte);
+}
+
+function repondreQuiz(bouton, estBonne){
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+  document.querySelectorAll('.quiz-opt').forEach(b => {
+    b.disabled = true;
+    if(b.dataset.ok === 'true') b.classList.add('bonne');
+  });
+  if(!estBonne) bouton.classList.add('mauvaise');
+  if(estBonne){ quizScore++; etincelleAu(bouton); }
+  quizResultats.push(estBonne);
+
+  const phrasesOk = ['Bravo champion, c\'est exact !', 'Super champion, bien joué !', 'Oui, tout à fait champion !'];
+  const phrasesNon = ['Presque champion, on continue !', 'Pas tout à fait, mais tu progresses champion !', 'On retient pour la prochaine fois, champion !'];
+  parlerAbel(estBonne ? phrasesOk[Math.floor(Math.random()*phrasesOk.length)] : phrasesNon[Math.floor(Math.random()*phrasesNon.length)]);
+
+  const dernierQuestion = (quizIndex === quizQuestions.length - 1);
+  document.getElementById('zoneSuivantQuiz').innerHTML =
+    `<button class="bouton-jeu" onclick="continuerQuiz()">${dernierQuestion ? '🏁 Voir mon score' : '▶️ Question suivante'}</button>`;
+}
+
+function continuerQuiz(){
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  quizIndex++;
+  if(quizIndex < quizQuestions.length) afficherQuestionQuiz();
+  else afficherFinQuiz();
+}
+
+function afficherFinQuiz(){
+  quizDemarre = false;
+  const total = quizQuestions.length;
+  let messageAbel;
+  const nouveauRecord = quizScore > quizRecords[quizNiveau];
+  if(nouveauRecord){
+    quizRecords[quizNiveau] = quizScore;
+    try{ localStorage.setItem('abel_quiz_records', JSON.stringify(quizRecords)); }catch(e){}
+  }
+  if(nouveauRecord && quizScore > 0) messageAbel = 'Bravo champion, nouveau record à ce niveau !';
+  else if(quizScore === total) messageAbel = 'Parfait champion, tu connais déjà très bien tes notes !';
+  else if(quizScore >= total/2) messageAbel = 'Bien joué champion, continue comme ça !';
+  else messageAbel = 'On rejouera bientôt pour s\'entraîner encore, champion !';
+  parlerAbel(messageAbel);
+  if(quizNiveau === 'facile') debloquerBadge('quiz_facile');
+  else if(quizNiveau === 'moyen') debloquerBadge('quiz_moyen');
+  else if(quizNiveau === 'fort') debloquerBadge('quiz_fort');
+
+  document.getElementById('carteQuiz').innerHTML = `
+    <div class="quiz-fin">
+      <p style="font-family:'Fredoka',sans-serif;font-weight:700;font-size:16px;">Quiz terminé ! (${LABELS_NIVEAU[quizNiveau]})</p>
+      <div class="score">${quizScore} / ${total}</div>
+      <p style="font-weight:700; color:${nouveauRecord ? '#ff9800' : 'var(--ink-soft)'}; font-size:13px;">
+        ${nouveauRecord ? '🏆 Nouveau record !' : 'Record actuel : ' + quizRecords[quizNiveau] + ' / ' + total}
+      </p>
+      <button class="bouton-jeu" onclick="demarrerQuiz('${quizNiveau}')">🔁 Rejouer ce niveau</button>
+      <button class="bouton-jeu" style="background:#888;" onclick="afficherAccueilQuiz()">↩️ Changer de niveau</button>
+    </div>`;
+}
+
+/* ===================== PARTITIONS ===================== */
+const CHANSONS = [
+  { titre:"Au clair de la lune", notesDroite:['do','do','do','re','mi','re','do','mi','re','re','do'], notesGauche:[] },
+  { titre:"Frère Jacques", notesDroite:['do','re','mi','do','do','re','mi','do','mi','fa','sol','mi','fa','sol'], notesGauche:[] },
+  { titre:"La gamme qui monte", notesDroite:['do','re','mi','fa','sol','la','si'], notesGauche:[] },
+  { titre:"Au clair de la lune (main gauche)", notesDroite:[], notesGauche:['do','do','do','re','mi','re','do','mi','re','re','do'] },
+  { titre:"Ainsi font font font", notesDroite:[], notesGauche:['sol','sol','sol','mi','mi','mi','la','la','sol','fa','mi','re','do','re','mi','fa','sol','sol','sol','mi','do'] },
+  { titre:"Au clair de la lune (à deux mains)", notesDroite:['do','do','do','re','mi','re','do','mi','re','re','do'], notesGauche:['do','do','do','re','mi','re','do','mi','re','re','do'] },
+];
+let partitionInitialisee = false, chansonActive = 0, curseurDroite = 0, curseurGauche = 0, demoEnCours = false;
+let tempsDebutChanson = null;
+let chansonRecords = {};
+try{ chansonRecords = JSON.parse(localStorage.getItem('abel_chanson_records') || '{}'); }catch(e){}
+
+function iconeChanson(c){
+  if(c.notesDroite.length > 0 && c.notesGauche.length > 0) return '🎼';
+  return c.notesGauche.length > 0 ? '✋' : '🖐️';
+}
+
+function initPartitions(){
+  partitionInitialisee = true;
+  const liste = document.getElementById('listeChansons');
+  liste.innerHTML = CHANSONS.map((c, i) =>
+    `<button class="chanson-btn ${i === 0 ? 'actif' : ''}" onclick="choisirChanson(${i})">${iconeChanson(c)} ${c.titre}</button>`
+  ).join('');
+
+  creerClavier('clavierPartitionA', (index, bouton) => {
+    if(demoEnCours) return;
+    const chanson = CHANSONS[chansonActive];
+    if(chanson.notesDroite.length === 0) return;
+    if(tempsDebutChanson === null) tempsDebutChanson = Date.now();
+    jouerNote(NOTES[index].freq);
+    flashTouche(bouton);
+    if(index === indexParClasse(chanson.notesDroite[curseurDroite])){
+      curseurDroite++;
+      majAffichagePartition();
+      verifierFinChanson(bouton);
+    }
+  });
+  creerClavier('clavierPartitionB', (index, bouton) => {
+    if(demoEnCours) return;
+    const chanson = CHANSONS[chansonActive];
+    if(chanson.notesGauche.length === 0) return;
+    if(tempsDebutChanson === null) tempsDebutChanson = Date.now();
+    jouerNote(BASS_NOTES[index].freq);
+    flashTouche(bouton);
+    if(index === indexParClasse(chanson.notesGauche[curseurGauche])){
+      curseurGauche++;
+      majAffichagePartition();
+      verifierFinChanson(bouton);
+    }
+  });
+  choisirChanson(0);
+}
+
+function afficherRecordChanson(){
+  const titre = CHANSONS[chansonActive].titre;
+  const record = chansonRecords[titre];
+  document.getElementById('recordChansonActuelle').textContent = record
+    ? '🏆 Record sur cette chanson : ' + record + ' s' : '';
+}
+
+function choisirChanson(i){
+  chansonActive = i; curseurDroite = 0; curseurGauche = 0; tempsDebutChanson = null;
+  document.querySelectorAll('.chanson-btn').forEach((b, idx) => b.classList.toggle('actif', idx === i));
+  majAffichagePartition();
+  afficherRecordChanson();
+  const c = CHANSONS[i];
+  const desc = (c.notesDroite.length > 0 && c.notesGauche.length > 0) ? 'à jouer avec les deux mains ensemble'
+    : (c.notesGauche.length > 0 ? 'à jouer avec la main gauche, en clé de fa' : 'à jouer avec la main droite, en clé de sol');
+  parlerAbel('Voici « ' + c.titre + ' », ' + desc + ' !');
+}
+
+function majUneMain(notes, curseur, sourceNotes, clef, idPortee, idLigne, idProgres, idClavier, idZone, labelMain){
+  const zone = document.getElementById(idZone);
+  if(notes.length === 0){ zone.classList.add('hidden'); return; }
+  zone.classList.remove('hidden');
+
+  document.getElementById(idProgres).textContent = labelMain + ' — Note ' + Math.min(curseur+1, notes.length) + ' / ' + notes.length;
+  document.getElementById(idLigne).innerHTML = notes.map((classe, i) => {
+    const note = sourceNotes[indexParClasse(classe)];
+    let etat = '';
+    if(i < curseur) etat = 'faite';
+    else if(i === curseur) etat = 'courante';
+    return `<div class="note-bulle ${classe} ${etat}">${note.nom}</div>`;
+  }).join('');
+  document.getElementById(idPortee).innerHTML = svgPorteeSequence(notes, curseur, clef).svg;
+
+  document.querySelectorAll('#' + idClavier + ' .touche').forEach(b => b.classList.remove('cible'));
+  if(curseur < notes.length){
+    const idx = indexParClasse(notes[curseur]);
+    const cible = document.querySelector('#' + idClavier + ' .touche[data-index="' + idx + '"]');
+    if(cible) cible.classList.add('cible');
+  }
+}
+
+function majAffichagePartition(){
+  const chanson = CHANSONS[chansonActive];
+  majUneMain(chanson.notesDroite, curseurDroite, NOTES, 'sol', 'zonePorteePartitionA', 'partitionLigneA', 'partitionProgresA', 'clavierPartitionA', 'zoneMainDroitePartition', '🖐️ Main droite');
+  majUneMain(chanson.notesGauche, curseurGauche, BASS_NOTES, 'fa', 'zonePorteePartitionB', 'partitionLigneB', 'partitionProgresB', 'clavierPartitionB', 'zoneMainGauchePartition', '✋ Main gauche');
+}
+
+function verifierFinChanson(bouton){
+  const chanson = CHANSONS[chansonActive];
+  const finDroite = chanson.notesDroite.length === 0 || curseurDroite >= chanson.notesDroite.length;
+  const finGauche = chanson.notesGauche.length === 0 || curseurGauche >= chanson.notesGauche.length;
+  if(finDroite && finGauche){
+    setTimeout(() => etincelleAu(bouton), 100);
+    if(chanson.notesDroite.length > 0 && chanson.notesGauche.length > 0) debloquerBadge('duo');
+    else if(chanson.notesGauche.length > 0) debloquerBadge('chanson_gauche');
+    else debloquerBadge('chanson_droite');
+
+    if(tempsDebutChanson !== null){
+      const temps = Math.round((Date.now() - tempsDebutChanson) / 1000);
+      const ancienRecord = chansonRecords[chanson.titre];
+      if(!ancienRecord || temps < ancienRecord){
+        chansonRecords[chanson.titre] = temps;
+        try{ localStorage.setItem('abel_chanson_records', JSON.stringify(chansonRecords)); }catch(e){}
+        parlerAbel('Bravo champion, nouveau record : ' + temps + ' secondes !');
+      } else {
+        parlerAbel('Bravo champion, tu as joué toute la chanson !');
+      }
+      afficherRecordChanson();
+      tempsDebutChanson = null;
+    }
+  }
+}
+
+function jouerDemoChanson(){
+  if(demoEnCours) return;
+  demoEnCours = true;
+  parlerAbel('Écoute bien...');
+  const chanson = CHANSONS[chansonActive];
+  const boutonsA = document.querySelectorAll('#clavierPartitionA .touche');
+  const boutonsB = document.querySelectorAll('#clavierPartitionB .touche');
+  const longueur = Math.max(chanson.notesDroite.length, chanson.notesGauche.length);
+  let i = 0;
+  const intervalle = setInterval(() => {
+    if(i < chanson.notesDroite.length){
+      const idx = indexParClasse(chanson.notesDroite[i]);
+      jouerNote(NOTES[idx].freq);
+      flashTouche(boutonsA[idx]);
+    }
+    if(i < chanson.notesGauche.length){
+      const idx = indexParClasse(chanson.notesGauche[i]);
+      jouerNote(BASS_NOTES[idx].freq);
+      flashTouche(boutonsB[idx]);
+    }
+    if(chanson.notesDroite.length > 0) document.getElementById('zonePorteePartitionA').innerHTML = svgPorteeSequence(chanson.notesDroite, i, 'sol').svg;
+    if(chanson.notesGauche.length > 0) document.getElementById('zonePorteePartitionB').innerHTML = svgPorteeSequence(chanson.notesGauche, i, 'fa').svg;
+    i++;
+    if(i >= longueur){
+      clearInterval(intervalle);
+      setTimeout(() => { demoEnCours = false; majAffichagePartition(); parlerAbel('À toi de jouer maintenant !'); }, 500);
+    }
+  }, 550);
+}
+
+/* ===================== DATE DU JOUR ===================== */
+function afficherDateJour(){
+  const el = document.getElementById('dateJour');
+  if(!el) return;
+  const maintenant = new Date();
+  const texte = maintenant.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+  el.textContent = texte.charAt(0).toUpperCase() + texte.slice(1);
+}
+afficherDateJour();
+setInterval(afficherDateJour, 60000);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+
+</script>
+
+</body>
+</html>
