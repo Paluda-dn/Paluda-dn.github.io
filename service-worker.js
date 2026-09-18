@@ -1,4 +1,4 @@
-const NOM_CACHE = 'piano-abel-v1';
+const NOM_CACHE = 'piano-abel-v2';
 const FICHIERS_A_METTRE_EN_CACHE = [
   './',
   './index.html',
@@ -23,8 +23,16 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Réseau en priorité : on va toujours chercher la dernière version en ligne.
+// Le cache ne sert que de secours si l'appareil est hors-ligne.
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((reponse) => reponse || fetch(event.request))
+    fetch(event.request)
+      .then((reponse) => {
+        const copie = reponse.clone();
+        caches.open(NOM_CACHE).then((cache) => cache.put(event.request, copie));
+        return reponse;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
