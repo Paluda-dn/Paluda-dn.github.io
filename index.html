@@ -219,6 +219,9 @@
   .puce{ width: 10px; height:10px; border-radius:50%; background: var(--card-line); }
   .puce.faite{ background: var(--fa); }
   .puce.ratee{ background: var(--rouge-non); }
+  .quiz-chrono-piste{ width: 140px; height: 8px; border-radius:8px; background: var(--card-line); margin: 0 auto 6px; overflow:hidden; }
+  .quiz-chrono-barre{ height:100%; border-radius:8px; background: linear-gradient(90deg, var(--fa), var(--mi)); transition: width 1s linear, background-color 0.3s; }
+  .quiz-chrono-nombre{ text-align:center; font-family:'Fredoka', sans-serif; font-weight:700; font-size:13px; color: var(--ink-soft); margin-bottom: 10px; }
   .quiz-question{
     font-family:'Fredoka', sans-serif; font-weight:700; font-size: 18px; text-align:center; margin-bottom: 18px;
   }
@@ -654,8 +657,8 @@ function parlerAbel(texte){
   // On NE coupe PAS la phrase en cours : la nouvelle phrase attend son tour dans la file.
   const u = new SpeechSynthesisUtterance(texte);
   u.lang = 'fr-FR';
-  u.rate = 1.05;
-  u.pitch = 1.6;
+  u.rate = 0.88;
+  u.pitch = 1.4;
   if(voixFR) u.voice = voixFR;
   derniereUtterance = u; // référence conservée volontairement (bug iOS)
   window.speechSynthesis.speak(u);
@@ -716,6 +719,7 @@ function creerClavier(conteneurId, onAppui){
 function allerA(nom){
   document.querySelectorAll('.onglet').forEach(o => o.classList.toggle('actif', o.dataset.p === nom));
   document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'panneau-' + nom));
+  if(nom !== 'quiz' && typeof arreterChronoQuiz === 'function') arreterChronoQuiz();
   if(nom === 'quiz' && !quizDemarre) afficherAccueilQuiz();
   if(nom === 'partitions' && !partitionInitialisee){ initPartitions(); }
   if(nom === 'badges') afficherBadges();
@@ -780,7 +784,7 @@ function jouerSequence(){
       clearInterval(intervalle);
       setTimeout(() => { enDemonstration = false; document.getElementById('messageJeu').textContent = 'À toi de jouer !'; }, 500);
     }
-  }, 700);
+  }, 900);
 }
 function finDeJeu(){
   jeuActif = false;
@@ -883,6 +887,12 @@ function demarrerQuiz(niveau){
   afficherQuestionQuiz();
 }
 
+let intervalleChronoQuiz = null;
+
+function arreterChronoQuiz(){
+  if(intervalleChronoQuiz){ clearInterval(intervalleChronoQuiz); intervalleChronoQuiz = null; }
+}
+
 function afficherQuestionQuiz(){
   const q = quizQuestions[quizIndex];
   const puces = quizResultats.map(r => `<div class="puce ${r ? 'faite' : 'ratee'}"></div>`).join('')
@@ -895,15 +905,56 @@ function afficherQuestionQuiz(){
 
   document.getElementById('carteQuiz').innerHTML = `
     <div class="quiz-progression">${puces}</div>
+    <div class="quiz-chrono-piste"><div class="quiz-chrono-barre" id="quizChronoBarre" style="width:100%;"></div></div>
+    <div class="quiz-chrono-nombre" id="quizChronoNombre">⏱️ 10 s</div>
     ${portee}
     <div class="quiz-question">${q.texte}</div>
     <div class="quiz-options">${optionsHTML}</div>
     <div id="zoneSuivantQuiz"></div>`;
 
   parlerAbel(q.texte);
+  demarrerChronoQuiz();
+}
+
+function demarrerChronoQuiz(){
+  arreterChronoQuiz();
+  let secondesRestantes = 10;
+  const barre = document.getElementById('quizChronoBarre');
+  const nombre = document.getElementById('quizChronoNombre');
+
+  intervalleChronoQuiz = setInterval(() => {
+    secondesRestantes--;
+    if(barre) barre.style.width = (secondesRestantes * 10) + '%';
+    if(nombre) nombre.textContent = '⏱️ ' + Math.max(secondesRestantes, 0) + ' s';
+    if(barre && secondesRestantes <= 3) barre.style.background = 'var(--rouge-non)';
+
+    if(secondesRestantes <= 0){
+      arreterChronoQuiz();
+      expirationTempsQuiz();
+    }
+  }, 1000);
+}
+
+function expirationTempsQuiz(){
+  const boutons = document.querySelectorAll('.quiz-opt');
+  boutons.forEach(b => {
+    b.disabled = true;
+    if(b.dataset.ok === 'true') b.classList.add('bonne');
+  });
+  quizResultats.push(false);
+
+  const phrasesTemps = ['Le temps est écoulé, on continue champion !', 'Trop tard cette fois, mais on progresse !', 'Presque, sois un peu plus rapide la prochaine fois champion !'];
+  parlerAbel(phrasesTemps[Math.floor(Math.random()*phrasesTemps.length)]);
+
+  const dernierQuestion = (quizIndex === quizQuestions.length - 1);
+  const zoneSuivant = document.getElementById('zoneSuivantQuiz');
+  if(zoneSuivant){
+    zoneSuivant.innerHTML = `<button class="bouton-jeu" onclick="continuerQuiz()">${dernierQuestion ? '🏁 Voir mon score' : '▶️ Question suivante'}</button>`;
+  }
 }
 
 function repondreQuiz(bouton, estBonne){
+  arreterChronoQuiz();
   if('speechSynthesis' in window) window.speechSynthesis.cancel();
 
   document.querySelectorAll('.quiz-opt').forEach(b => {
@@ -924,6 +975,7 @@ function repondreQuiz(bouton, estBonne){
 }
 
 function continuerQuiz(){
+  arreterChronoQuiz();
   if('speechSynthesis' in window) window.speechSynthesis.cancel();
   quizIndex++;
   if(quizIndex < quizQuestions.length) afficherQuestionQuiz();
@@ -1115,7 +1167,7 @@ function jouerDemoChanson(){
       clearInterval(intervalle);
       setTimeout(() => { demoEnCours = false; majAffichagePartition(); parlerAbel('À toi de jouer maintenant !'); }, 500);
     }
-  }, 550);
+  }, 750);
 }
 
 /* ===================== DATE DU JOUR ===================== */
@@ -1172,7 +1224,6 @@ if('serviceWorker' in navigator){
   }, 850);
 
   splash.addEventListener('pointerdown', terminerSplash);
-  setTimeout(terminerSplash, 3200);
 })();
 
 
