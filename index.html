@@ -612,6 +612,9 @@ function jouerNote(freq){
 
 /* ===================== ABEL : VOIX + BULLE ===================== */
 let voixFR = null;
+let derniereUtterance = null; // iOS/Safari coupe la voix si l'objet est "ramassé" par le garbage collector : on le garde en mémoire
+const estIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 if('speechSynthesis' in window){
   function chargerVoix(){
     const voix = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
@@ -624,10 +627,10 @@ if('speechSynthesis' in window){
 }
 
 // Anti-coupure Chrome/Android : la synthèse vocale s'arrête parfois seule après ~14s.
-// On la "réveille" en boucle tant qu'elle parle, pour ne jamais couper une phrase en cours.
+// IMPORTANT : ce mécanisme casse la voix sur iOS (pause()/resume() y est bogué), donc on ne l'active JAMAIS sur iOS.
 let gardienVocal = null;
 function demarrerGardienVocal(){
-  if(gardienVocal) return;
+  if(estIOS || gardienVocal) return;
   gardienVocal = setInterval(() => {
     if(window.speechSynthesis.speaking){
       window.speechSynthesis.pause();
@@ -643,12 +646,18 @@ function parlerAbel(texte){
   const bulle = document.getElementById('bulle');
   bulle.textContent = texte;
   if(sonCoupe || !('speechSynthesis' in window)) return;
+  if(!voixFR){
+    // Sur iOS, les voix arrivent parfois en retard : on retente juste avant de parler
+    const voix = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+    if(voix.length) voixFR = voix[0];
+  }
   // On NE coupe PAS la phrase en cours : la nouvelle phrase attend son tour dans la file.
   const u = new SpeechSynthesisUtterance(texte);
   u.lang = 'fr-FR';
   u.rate = 1.05;
   u.pitch = 1.6;
   if(voixFR) u.voice = voixFR;
+  derniereUtterance = u; // référence conservée volontairement (bug iOS)
   window.speechSynthesis.speak(u);
   demarrerGardienVocal();
 }
@@ -659,10 +668,20 @@ document.getElementById('btnMute').addEventListener('click', function(){
   if(sonCoupe && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 });
 
-document.addEventListener('pointerdown', function premierGeste(){
-  document.removeEventListener('pointerdown', premierGeste);
-  parlerAbel("Salut champion ! J'apprends le piano avec toi. Choisis un mode pour commencer !");
-}, { once:true });
+(function(){
+  let debloque = false;
+  function premierGeste(){
+    if(debloque) return;
+    debloque = true;
+    document.removeEventListener('pointerdown', premierGeste);
+    document.removeEventListener('touchend', premierGeste);
+    document.removeEventListener('click', premierGeste);
+    parlerAbel("Salut champion ! J'apprends le piano avec toi. Choisis un mode pour commencer !");
+  }
+  document.addEventListener('pointerdown', premierGeste);
+  document.addEventListener('touchend', premierGeste);
+  document.addEventListener('click', premierGeste);
+})();
 
 /* ===================== OUTILS VISUELS ===================== */
 function flashTouche(bouton){
