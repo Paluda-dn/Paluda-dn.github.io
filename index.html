@@ -219,9 +219,9 @@
   .puce{ width: 10px; height:10px; border-radius:50%; background: var(--card-line); }
   .puce.faite{ background: var(--fa); }
   .puce.ratee{ background: var(--rouge-non); }
-  .quiz-chrono-piste{ width: 140px; height: 8px; border-radius:8px; background: var(--card-line); margin: 0 auto 6px; overflow:hidden; }
-  .quiz-chrono-barre{ height:100%; border-radius:8px; background: linear-gradient(90deg, var(--fa), var(--mi)); transition: width 1s linear, background-color 0.3s; }
-  .quiz-chrono-nombre{ text-align:center; font-family:'Fredoka', sans-serif; font-weight:700; font-size:13px; color: var(--ink-soft); margin-bottom: 10px; }
+  .quiz-chrono-piste{ width: 220px; height: 16px; border-radius:10px; background: var(--card-line); margin: 0 auto 10px; overflow:hidden; }
+  .quiz-chrono-barre{ height:100%; border-radius:10px; background: linear-gradient(90deg, var(--fa), var(--mi)); transition: width 1s linear, background-color 0.3s; }
+  .quiz-chrono-nombre{ text-align:center; font-family:'Fredoka', sans-serif; font-weight:700; font-size:22px; color: var(--ink); margin-bottom: 14px; }
   .quiz-question{
     font-family:'Fredoka', sans-serif; font-weight:700; font-size: 18px; text-align:center; margin-bottom: 18px;
   }
@@ -296,9 +296,15 @@
   .splash-touche.la{ background:var(--la); animation-delay:1.40s; }
   .splash-touche.si{ background:var(--si); animation-delay:1.47s; }
   .splash-toucher{
-    position:absolute; bottom: 26px; color: var(--ink-soft); font-size:12px; font-weight:700;
+    position:absolute; bottom: 26px;
+    font-family:'Fredoka', sans-serif; color:#fff; font-size:14px; font-weight:700;
+    background: linear-gradient(135deg, var(--fa), var(--sol));
+    border: none; border-radius: 999px; padding: 12px 26px;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+    cursor: pointer;
     opacity:0; animation: apparaitSplash 0.5s ease-out 1.9s forwards;
   }
+  .splash-toucher:active{ transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,0.15); }
   .splash-chargement{ opacity:0; animation: apparaitSplash 0.5s ease-out 0.85s forwards; text-align:center; }
   .splash-barre-track{
     width: 200px; height: 12px; border-radius: 10px; background: var(--card-line); overflow:hidden; margin: 4px auto 0;
@@ -359,7 +365,7 @@
       <div class="splash-barre-track"><div class="splash-barre-fill" id="splashBarreFill"></div></div>
       <p class="splash-pourcentage" id="splashPourcentage">0%</p>
     </div>
-    <p class="splash-toucher">Touche l'écran pour commencer</p>
+    <button class="splash-toucher" id="btnSplashToucher">Touche l'écran pour commencer</button>
   </div>
   <div class="zone-abel">
     <svg class="abel-svg" width="64" height="72" viewBox="0 0 120 140">
@@ -645,10 +651,13 @@ function demarrerGardienVocal(){
   }, 4000);
 }
 
-function parlerAbel(texte){
+function parlerAbel(texte, alaFin, texteAffiche){
   const bulle = document.getElementById('bulle');
-  bulle.textContent = texte;
-  if(sonCoupe || !('speechSynthesis' in window)) return;
+  bulle.textContent = texteAffiche || texte;
+  if(sonCoupe || !('speechSynthesis' in window)){
+    if(alaFin) alaFin();
+    return;
+  }
   if(!voixFR){
     // Sur iOS, les voix arrivent parfois en retard : on retente juste avant de parler
     const voix = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
@@ -660,6 +669,7 @@ function parlerAbel(texte){
   u.rate = 0.88;
   u.pitch = 1.4;
   if(voixFR) u.voice = voixFR;
+  if(alaFin){ u.onend = alaFin; u.onerror = alaFin; }
   derniereUtterance = u; // référence conservée volontairement (bug iOS)
   window.speechSynthesis.speak(u);
   demarrerGardienVocal();
@@ -671,20 +681,16 @@ document.getElementById('btnMute').addEventListener('click', function(){
   if(sonCoupe && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 });
 
-(function(){
-  let debloque = false;
-  function premierGeste(){
-    if(debloque) return;
-    debloque = true;
-    document.removeEventListener('pointerdown', premierGeste);
-    document.removeEventListener('touchend', premierGeste);
-    document.removeEventListener('click', premierGeste);
-    parlerAbel("Salut champion ! J'apprends le piano avec toi. Choisis un mode pour commencer !");
-  }
-  document.addEventListener('pointerdown', premierGeste);
-  document.addEventListener('touchend', premierGeste);
-  document.addEventListener('click', premierGeste);
-})();
+let salutationDebloquee = false;
+function premierGeste(){
+  if(salutationDebloquee) return;
+  salutationDebloquee = true;
+  document.removeEventListener('click', premierGeste);
+  parlerAbel("Salut champion ! J'apprends le piano avec toi. Choisis un mode pour commencer !");
+}
+// On écoute uniquement "click" (pas pointerdown/touchend) : sur certains navigateurs mobiles,
+// seul un vrai clic est reconnu comme un geste suffisant pour débloquer la voix.
+document.addEventListener('click', premierGeste);
 
 /* ===================== OUTILS VISUELS ===================== */
 function flashTouche(bouton){
@@ -717,6 +723,7 @@ function creerClavier(conteneurId, onAppui){
 
 /* ===================== NAVIGATION ===================== */
 function allerA(nom){
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
   document.querySelectorAll('.onglet').forEach(o => o.classList.toggle('actif', o.dataset.p === nom));
   document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'panneau-' + nom));
   if(nom !== 'quiz' && typeof arreterChronoQuiz === 'function') arreterChronoQuiz();
@@ -897,7 +904,8 @@ function afficherQuestionQuiz(){
   const q = quizQuestions[quizIndex];
   const puces = quizResultats.map(r => `<div class="puce ${r ? 'faite' : 'ratee'}"></div>`).join('')
     + Array(quizQuestions.length - quizResultats.length).fill('<div class="puce"></div>').join('');
-  const optionsHTML = melanger(q.options).map((opt, i) => {
+  const optionsMelangees = melanger(q.options);
+  const optionsHTML = optionsMelangees.map((opt, i) => {
     const classeCouleur = opt.c ? ' style="background:' + COULEURS_NOTES[opt.c] + ' !important;"' : '';
     return `<button class="quiz-opt" data-ok="${opt.ok}"${classeCouleur} onclick="repondreQuiz(this, ${opt.ok})">${opt.t}</button>`;
   }).join('');
@@ -912,8 +920,10 @@ function afficherQuestionQuiz(){
     <div class="quiz-options">${optionsHTML}</div>
     <div id="zoneSuivantQuiz"></div>`;
 
-  parlerAbel(q.texte);
-  demarrerChronoQuiz();
+  const texteOptions = optionsMelangees.map(o => o.t).join(' ... ');
+  const texteComplet = q.texte + ' ... ' + texteOptions;
+
+  parlerAbel(texteComplet, demarrerChronoQuiz, q.texte);
 }
 
 function demarrerChronoQuiz(){
@@ -1223,7 +1233,7 @@ if('serviceWorker' in navigator){
     requestAnimationFrame(animerChargement);
   }, 850);
 
-  splash.addEventListener('pointerdown', terminerSplash);
+  splash.addEventListener('click', terminerSplash);
 })();
 
 
