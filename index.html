@@ -262,6 +262,50 @@
 
   .hidden{ display:none !important; }
 
+  .splash-intro{
+    position: fixed; inset: 0; z-index: 5000;
+    background: linear-gradient(180deg, var(--sky-a), var(--sky-b));
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 16px;
+    transition: opacity 0.5s ease, visibility 0.5s;
+    cursor: pointer;
+  }
+  .splash-intro.masque{ opacity: 0; visibility: hidden; pointer-events: none; }
+  .splash-abel{ animation: rebondSplash 1.1s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes rebondSplash{
+    0%{ transform: translateY(70px) scale(0.6); opacity:0; }
+    60%{ transform: translateY(-12px) scale(1.08); opacity:1; }
+    100%{ transform: translateY(0) scale(1); }
+  }
+  .splash-titre{
+    font-family:'Fredoka', sans-serif; font-weight:700; font-size: clamp(19px, 5vw, 28px);
+    color: var(--ink); text-align:center; opacity:0; padding:0 20px;
+    animation: apparaitSplash 0.6s ease-out 0.95s forwards;
+  }
+  @keyframes apparaitSplash{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+  .splash-touches{ display:flex; gap:6px; }
+  .splash-touche{ width:18px; height:52px; border-radius:6px; opacity:0; transform-origin:bottom; animation: popSplash 0.4s ease-out forwards; }
+  @keyframes popSplash{ from{ transform:scaleY(0.15); opacity:0;} to{ transform:scaleY(1); opacity:1;} }
+  .splash-touche.do{ background:var(--do); animation-delay:1.05s; }
+  .splash-touche.re{ background:var(--re); animation-delay:1.12s; }
+  .splash-touche.mi{ background:var(--mi); animation-delay:1.19s; }
+  .splash-touche.fa{ background:var(--fa); animation-delay:1.26s; }
+  .splash-touche.sol{ background:var(--sol); animation-delay:1.33s; }
+  .splash-touche.la{ background:var(--la); animation-delay:1.40s; }
+  .splash-touche.si{ background:var(--si); animation-delay:1.47s; }
+  .splash-toucher{
+    position:absolute; bottom: 26px; color: var(--ink-soft); font-size:12px; font-weight:700;
+    opacity:0; animation: apparaitSplash 0.5s ease-out 1.9s forwards;
+  }
+  .splash-chargement{ opacity:0; animation: apparaitSplash 0.5s ease-out 0.85s forwards; text-align:center; }
+  .splash-barre-track{
+    width: 200px; height: 12px; border-radius: 10px; background: var(--card-line); overflow:hidden; margin: 4px auto 0;
+  }
+  .splash-barre-fill{
+    height:100%; width:0%; border-radius:10px;
+    background: linear-gradient(90deg, var(--la), var(--sol));
+  }
+  .splash-pourcentage{ font-family:'Fredoka', sans-serif; font-weight:700; font-size:13px; color: var(--ink-soft); margin-top:6px; }
+
   .badges-grille{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .badge-carte{
     display:flex; align-items:center; gap:10px; padding: 12px; border-radius: 16px;
@@ -285,6 +329,35 @@
 <body>
 
 <div class="app">
+  <div class="splash-intro" id="splashIntro">
+    <svg class="splash-abel" width="100" height="112" viewBox="0 0 120 140">
+      <ellipse cx="60" cy="128" rx="34" ry="10" fill="rgba(0,0,0,0.08)"/>
+      <path d="M28 138 L28 100 Q28 82 60 82 Q92 82 92 100 L92 138 Z" fill="#4bb8e6"/>
+      <path d="M28 138 L28 110 Q40 122 60 122 Q80 122 92 110 L92 138 Z" fill="#3aa0d6"/>
+      <circle cx="60" cy="52" r="34" fill="#f5c99b"/>
+      <path d="M26 48 Q26 14 60 14 Q94 14 94 48 Q88 32 60 30 Q32 32 26 48 Z" fill="#5b3d2b"/>
+      <circle cx="46" cy="54" r="5" fill="#3a2e5c"/>
+      <circle cx="74" cy="54" r="5" fill="#3a2e5c"/>
+      <ellipse cx="38" cy="64" rx="6" ry="4" fill="#ff9e9e" opacity="0.7"/>
+      <ellipse cx="82" cy="64" rx="6" ry="4" fill="#ff9e9e" opacity="0.7"/>
+      <path d="M46 68 Q60 84 74 68" stroke="#5c4a3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>
+    <p class="splash-titre">Le petit Abel apprend le piano</p>
+    <div class="splash-touches">
+      <div class="splash-touche do"></div>
+      <div class="splash-touche re"></div>
+      <div class="splash-touche mi"></div>
+      <div class="splash-touche fa"></div>
+      <div class="splash-touche sol"></div>
+      <div class="splash-touche la"></div>
+      <div class="splash-touche si"></div>
+    </div>
+    <div class="splash-chargement">
+      <div class="splash-barre-track"><div class="splash-barre-fill" id="splashBarreFill"></div></div>
+      <p class="splash-pourcentage" id="splashPourcentage">0%</p>
+    </div>
+    <p class="splash-toucher">Touche l'écran pour commencer</p>
+  </div>
   <div class="zone-abel">
     <svg class="abel-svg" width="64" height="72" viewBox="0 0 120 140">
       <ellipse cx="60" cy="128" rx="34" ry="10" fill="rgba(0,0,0,0.08)"/>
@@ -1041,6 +1114,47 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('service-worker.js').catch(() => {});
   });
 }
+
+/* ===================== ÉCRAN D'OUVERTURE ===================== */
+(function(){
+  const splash = document.getElementById('splashIntro');
+  if(!splash) return;
+  let termine = false;
+
+  function terminerSplash(){
+    if(termine) return;
+    termine = true;
+    splash.classList.add('masque');
+    setTimeout(() => { if(splash.parentNode) splash.parentNode.removeChild(splash); }, 550);
+  }
+
+  // Petite mélodie de bienvenue, synchronisée avec l'animation des touches
+  setTimeout(() => jouerNote(NOTES[0].freq), 1050);
+  setTimeout(() => jouerNote(NOTES[2].freq), 1200);
+  setTimeout(() => jouerNote(NOTES[4].freq), 1350);
+  setTimeout(() => jouerNote(NOTES[0].freq), 1550);
+
+  // Barre de progression et pourcentage, de 0% à 100%
+  const barreFill = document.getElementById('splashBarreFill');
+  const pourcentageEl = document.getElementById('splashPourcentage');
+  const dureeChargement = 2250;
+  setTimeout(() => {
+    const debut = performance.now();
+    function animerChargement(t){
+      if(termine) return;
+      const progres = Math.min(1, (t - debut) / dureeChargement);
+      const pourcentage = Math.round(progres * 100);
+      if(barreFill) barreFill.style.width = pourcentage + '%';
+      if(pourcentageEl) pourcentageEl.textContent = pourcentage + '%';
+      if(progres < 1) requestAnimationFrame(animerChargement);
+    }
+    requestAnimationFrame(animerChargement);
+  }, 850);
+
+  splash.addEventListener('pointerdown', terminerSplash);
+  setTimeout(terminerSplash, 3200);
+})();
+
 
 </script>
 
