@@ -233,6 +233,9 @@
   }
   .quiz-opt:active{ transform: translateY(2px); box-shadow: 0 3px 0 rgba(0,0,0,0.15); }
   .quiz-opt.bonne{ background: linear-gradient(135deg, #66bb6a, var(--vert-ok)) !important; }
+  .quiz-feedback{ text-align:center; font-family:'Fredoka', sans-serif; font-weight:700; font-size:20px; margin: 10px 0; min-height: 26px; }
+  .quiz-feedback.ok{ color: var(--vert-ok); }
+  .quiz-feedback.non{ color: var(--rouge-non); }
   .quiz-opt.mauvaise{ background: linear-gradient(135deg, #ef5350, var(--rouge-non)) !important; }
   .quiz-opt[disabled]{ cursor: default; }
   .quiz-fin{ text-align:center; }
@@ -622,6 +625,12 @@ function jouerNote(freq){
 /* ===================== ABEL : VOIX + BULLE ===================== */
 let voixFR = null;
 let derniereUtterance = null; // iOS/Safari coupe la voix si l'objet est "ramassé" par le garbage collector : on le garde en mémoire
+let generationVoix = 0; // incrémenté à chaque nouvelle prise de parole ou coupure volontaire : une prise de parole
+                         // "périmée" (dont le numéro ne correspond plus) s'arrête net, sans dépendre du timing des événements du navigateur.
+function annulerVoixAbel(){
+  generationVoix++;
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
 const estIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 if('speechSynthesis' in window){
@@ -680,8 +689,13 @@ function parlerAbel(texte, alaFin, texteAffiche){
   // Ailleurs (iOS/desktop), on garde une seule utterance : la phrase en cours n'est jamais coupée.
   const phrases = estAndroid ? decouperEnPhrases(texte) : [texte];
   let index = 0;
+  generationVoix++;
+  const maGeneration = generationVoix; // identifie cette prise de parole précise
 
   function parlerSuivant(){
+    // Une nouvelle prise de parole a démarré depuis (ex : réponse donnée, question suivante) :
+    // celle-ci est périmée, on arrête tout sans appeler alaFin.
+    if(maGeneration !== generationVoix) return;
     if(index >= phrases.length){
       if(alaFin) alaFin();
       return;
@@ -705,7 +719,7 @@ function parlerAbel(texte, alaFin, texteAffiche){
 document.getElementById('btnMute').addEventListener('click', function(){
   sonCoupe = !sonCoupe;
   this.textContent = sonCoupe ? '🔇' : '🔊';
-  if(sonCoupe && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  if(sonCoupe) annulerVoixAbel();
 });
 
 let salutationDebloquee = false;
@@ -750,7 +764,7 @@ function creerClavier(conteneurId, onAppui){
 
 /* ===================== NAVIGATION ===================== */
 function allerA(nom){
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  annulerVoixAbel();
   document.querySelectorAll('.onglet').forEach(o => o.classList.toggle('actif', o.dataset.p === nom));
   document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'panneau-' + nom));
   if(nom !== 'quiz' && typeof arreterChronoQuiz === 'function') arreterChronoQuiz();
@@ -818,7 +832,7 @@ function jouerSequence(){
       clearInterval(intervalle);
       setTimeout(() => { enDemonstration = false; document.getElementById('messageJeu').textContent = 'À toi de jouer !'; }, 500);
     }
-  }, 900);
+  }, 1300);
 }
 function finDeJeu(){
   jeuActif = false;
@@ -922,6 +936,7 @@ function demarrerQuiz(niveau){
 }
 
 let intervalleChronoQuiz = null;
+const DUREE_CHRONO_QUIZ = 10; // durée du chrono du quiz, en secondes
 
 function arreterChronoQuiz(){
   if(intervalleChronoQuiz){ clearInterval(intervalleChronoQuiz); intervalleChronoQuiz = null; }
@@ -941,10 +956,11 @@ function afficherQuestionQuiz(){
   document.getElementById('carteQuiz').innerHTML = `
     <div class="quiz-progression">${puces}</div>
     <div class="quiz-chrono-piste"><div class="quiz-chrono-barre" id="quizChronoBarre" style="width:100%;"></div></div>
-    <div class="quiz-chrono-nombre" id="quizChronoNombre">⏱️ 10 s</div>
+    <div class="quiz-chrono-nombre" id="quizChronoNombre">⏱️ ${DUREE_CHRONO_QUIZ} s</div>
     ${portee}
     <div class="quiz-question">${q.texte}</div>
     <div class="quiz-options">${optionsHTML}</div>
+    <div id="quizFeedback" class="quiz-feedback"></div>
     <div id="zoneSuivantQuiz"></div>`;
 
   const texteOptions = optionsMelangees.map(o => o.t).join(' ... ');
@@ -955,13 +971,13 @@ function afficherQuestionQuiz(){
 
 function demarrerChronoQuiz(){
   arreterChronoQuiz();
-  let secondesRestantes = 10;
+  let secondesRestantes = DUREE_CHRONO_QUIZ;
   const barre = document.getElementById('quizChronoBarre');
   const nombre = document.getElementById('quizChronoNombre');
 
   intervalleChronoQuiz = setInterval(() => {
     secondesRestantes--;
-    if(barre) barre.style.width = (secondesRestantes * 10) + '%';
+    if(barre) barre.style.width = (secondesRestantes / DUREE_CHRONO_QUIZ * 100) + '%';
     if(nombre) nombre.textContent = '⏱️ ' + Math.max(secondesRestantes, 0) + ' s';
     if(barre && secondesRestantes <= 3) barre.style.background = 'var(--rouge-non)';
 
@@ -980,6 +996,12 @@ function expirationTempsQuiz(){
   });
   quizResultats.push(false);
 
+  const feedback = document.getElementById('quizFeedback');
+  if(feedback){
+    feedback.textContent = '⏰ Temps écoulé';
+    feedback.className = 'quiz-feedback non';
+  }
+
   const phrasesTemps = ['Le temps est écoulé, on continue champion !', 'Trop tard cette fois, mais on progresse !', 'Presque, sois un peu plus rapide la prochaine fois champion !'];
   parlerAbel(phrasesTemps[Math.floor(Math.random()*phrasesTemps.length)]);
 
@@ -992,7 +1014,7 @@ function expirationTempsQuiz(){
 
 function repondreQuiz(bouton, estBonne){
   arreterChronoQuiz();
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  annulerVoixAbel();
 
   document.querySelectorAll('.quiz-opt').forEach(b => {
     b.disabled = true;
@@ -1001,6 +1023,12 @@ function repondreQuiz(bouton, estBonne){
   if(!estBonne) bouton.classList.add('mauvaise');
   if(estBonne){ quizScore++; etincelleAu(bouton); }
   quizResultats.push(estBonne);
+
+  const feedback = document.getElementById('quizFeedback');
+  if(feedback){
+    feedback.textContent = estBonne ? '✅ Bonne réponse !' : '❌ Mauvaise réponse';
+    feedback.className = 'quiz-feedback ' + (estBonne ? 'ok' : 'non');
+  }
 
   const phrasesOk = ['Bravo champion, c\'est exact !', 'Super champion, bien joué !', 'Oui, tout à fait champion !'];
   const phrasesNon = ['Presque champion, on continue !', 'Pas tout à fait, mais tu progresses champion !', 'On retient pour la prochaine fois, champion !'];
@@ -1013,7 +1041,7 @@ function repondreQuiz(bouton, estBonne){
 
 function continuerQuiz(){
   arreterChronoQuiz();
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  annulerVoixAbel();
   quizIndex++;
   if(quizIndex < quizQuestions.length) afficherQuestionQuiz();
   else afficherFinQuiz();
