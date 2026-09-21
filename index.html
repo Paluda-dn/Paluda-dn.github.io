@@ -635,11 +635,16 @@ if('speechSynthesis' in window){
   window.speechSynthesis.onvoiceschanged = chargerVoix;
 }
 
+const estAndroid = /Android/i.test(navigator.userAgent);
+
 // Anti-coupure Chrome/Android : la synthèse vocale s'arrête parfois seule après ~14s.
 // IMPORTANT : ce mécanisme casse la voix sur iOS (pause()/resume() y est bogué), donc on ne l'active JAMAIS sur iOS.
+// IMPORTANT : sur Android, pause() se comporte comme cancel() sur de nombreux appareils/navigateurs,
+// donc ce "réveil" coupe en réalité la voix au lieu de la sauver. On ne l'active pas non plus sur Android :
+// on évite le bug autrement, en découpant le texte en phrases courtes (voir parlerAbel).
 let gardienVocal = null;
 function demarrerGardienVocal(){
-  if(estIOS || gardienVocal) return;
+  if(estIOS || estAndroid || gardienVocal) return;
   gardienVocal = setInterval(() => {
     if(window.speechSynthesis.speaking){
       window.speechSynthesis.pause();
@@ -649,6 +654,13 @@ function demarrerGardienVocal(){
       gardienVocal = null;
     }
   }, 4000);
+}
+
+// Découpe un texte en phrases courtes (sur la ponctuation) : chaque phrase individuelle
+// reste sous le seuil qui déclenche le bug de coupure Android, donc pas besoin de pause()/resume().
+function decouperEnPhrases(texte){
+  const morceaux = texte.match(/[^.!?]+[.!?]*/g) || [texte];
+  return morceaux.map(m => m.trim()).filter(m => m.length > 0);
 }
 
 function parlerAbel(texte, alaFin, texteAffiche){
@@ -663,15 +675,30 @@ function parlerAbel(texte, alaFin, texteAffiche){
     const voix = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
     if(voix.length) voixFR = voix[0];
   }
-  // On NE coupe PAS la phrase en cours : la nouvelle phrase attend son tour dans la file.
-  const u = new SpeechSynthesisUtterance(texte);
-  u.lang = 'fr-FR';
-  u.rate = 0.88;
-  u.pitch = 1.4;
-  if(voixFR) u.voice = voixFR;
-  if(alaFin){ u.onend = alaFin; u.onerror = alaFin; }
-  derniereUtterance = u; // référence conservée volontairement (bug iOS)
-  window.speechSynthesis.speak(u);
+
+  // Sur Android, on parle phrase par phrase (enchaînées via onend) pour rester sous le seuil de coupure.
+  // Ailleurs (iOS/desktop), on garde une seule utterance : la phrase en cours n'est jamais coupée.
+  const phrases = estAndroid ? decouperEnPhrases(texte) : [texte];
+  let index = 0;
+
+  function parlerSuivant(){
+    if(index >= phrases.length){
+      if(alaFin) alaFin();
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(phrases[index]);
+    u.lang = 'fr-FR';
+    u.rate = 0.88;
+    u.pitch = 1.4;
+    if(voixFR) u.voice = voixFR;
+    index++;
+    u.onend = parlerSuivant;
+    u.onerror = parlerSuivant;
+    derniereUtterance = u; // référence conservée volontairement (bug iOS)
+    window.speechSynthesis.speak(u);
+  }
+
+  parlerSuivant();
   demarrerGardienVocal();
 }
 
