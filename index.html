@@ -1032,7 +1032,17 @@ function repondreQuiz(bouton, estBonne){
 
   const phrasesOk = ['Bravo champion, c\'est exact !', 'Super champion, bien joué !', 'Oui, tout à fait champion !'];
   const phrasesNon = ['Presque champion, on continue !', 'Pas tout à fait, mais tu progresses champion !', 'On retient pour la prochaine fois, champion !'];
-  parlerAbel(estBonne ? phrasesOk[Math.floor(Math.random()*phrasesOk.length)] : phrasesNon[Math.floor(Math.random()*phrasesNon.length)]);
+
+  let texteVoix = estBonne
+    ? phrasesOk[Math.floor(Math.random()*phrasesOk.length)]
+    : phrasesNon[Math.floor(Math.random()*phrasesNon.length)];
+
+  if(!estBonne){
+    const boutonCorrect = document.querySelector('.quiz-opt[data-ok="true"]');
+    if(boutonCorrect) texteVoix += ' La bonne réponse était : ' + boutonCorrect.textContent + '.';
+  }
+
+  parlerAbel(texteVoix);
 
   const dernierQuestion = (quizIndex === quizQuestions.length - 1);
   document.getElementById('zoneSuivantQuiz').innerHTML =
