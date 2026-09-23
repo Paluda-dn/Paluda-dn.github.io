@@ -236,6 +236,10 @@
   .quiz-feedback{ text-align:center; font-family:'Fredoka', sans-serif; font-weight:700; font-size:20px; margin: 10px 0; min-height: 26px; }
   .quiz-feedback.ok{ color: var(--vert-ok); }
   .quiz-feedback.non{ color: var(--rouge-non); }
+  .quiz-explication{ text-align:center; font-size:14px; color: var(--ink-soft); margin: -4px 0 10px; padding: 0 8px; }
+  .quiz-explication.visible{ background: var(--sky-a); border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; }
+  .mode-tranquille-toggle{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:13px; color:var(--ink-soft); font-weight:700; margin: 10px 0 4px; cursor:pointer; }
+  .mode-tranquille-toggle input{ width:16px; height:16px; }
   .quiz-opt.mauvaise{ background: linear-gradient(135deg, #ef5350, var(--rouge-non)) !important; }
   .quiz-opt[disabled]{ cursor: default; }
   .quiz-fin{ text-align:center; }
@@ -319,6 +323,8 @@
   .splash-pourcentage{ font-family:'Fredoka', sans-serif; font-weight:700; font-size:13px; color: var(--ink-soft); margin-top:6px; }
 
   .badges-grille{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .progression-ligne{ display:flex; justify-content:space-between; align-items:center; padding:6px 4px; font-size:14px; color:var(--ink); border-bottom:1px solid var(--card-line); }
+  .progression-ligne:last-of-type{ border-bottom:none; }
   .badge-carte{
     display:flex; align-items:center; gap:10px; padding: 12px; border-radius: 16px;
     background: var(--sky-a); border: 2px solid var(--card-line); opacity: 0.5; filter: grayscale(1);
@@ -384,7 +390,7 @@
       <path d="M46 70 Q60 82 74 70" stroke="#5c4a3a" stroke-width="3" fill="none" stroke-linecap="round"/>
     </svg>
     <div class="bulle" id="bulle"></div>
-    <button class="mute-btn" id="btnRetour" title="Retour à l'accueil" onclick="allerA('libre')" style="margin-right:-2px;">⬅️</button>
+    <button class="mute-btn" id="btnRetour" title="Retour à l'accueil" onclick="allerA('quiz')" style="margin-right:-2px;">⬅️</button>
     <button class="mute-btn" id="btnMute" title="Couper le son">🔊</button>
   </div>
 
@@ -394,39 +400,20 @@
   </header>
 
   <div class="onglets">
-    <button class="onglet actif" data-p="libre" onclick="allerA('libre')">🎹 Piano</button>
-    <button class="onglet" data-p="jeu" onclick="allerA('jeu')">🎮 Mémoire</button>
-    <button class="onglet" data-p="quiz" onclick="allerA('quiz')">📖 Quiz</button>
-    <button class="onglet" data-p="partitions" onclick="allerA('partitions')">🎼 Partitions</button>
+    <button class="onglet actif" data-p="quiz" onclick="allerA('quiz')">📖 Quiz</button>
+    <button class="onglet" data-p="cles" onclick="allerA('cles')">🎼 Étude des clés</button>
+    <button class="onglet" data-p="partitions" onclick="allerA('partitions')">🎵 Partitions</button>
     <button class="onglet" data-p="badges" onclick="allerA('badges')">🏅 Badges</button>
   </div>
 
-  <!-- PIANO LIBRE -->
-  <div class="panneau actif" id="panneau-libre">
-    <div class="carte">
-      <div id="porteeLibre" style="margin-bottom:6px;"></div>
-      <div class="clavier" id="clavierLibre"></div>
-    </div>
-    <p class="regle">Touche une couleur pour jouer une note. Abel t'écoute jouer !</p>
-  </div>
-
-  <!-- JEU DE MEMOIRE -->
-  <div class="panneau" id="panneau-jeu">
-    <div class="carte">
-      <div class="jeu-en-tete">
-        <div class="stat"><div class="valeur" id="statNiveau">0</div><div class="label">NIVEAU</div></div>
-        <div class="stat"><div class="valeur" id="statRecord">0</div><div class="label">RECORD</div></div>
-      </div>
-      <div class="message-jeu" id="messageJeu">Prêt à jouer ?</div>
-      <div class="clavier" id="clavierJeu"></div>
-      <button class="bouton-jeu" id="btnJouer" onclick="demarrerJeu()">▶️ Commencer</button>
-    </div>
-    <p class="regle">Regarde et écoute la mélodie, puis rejoue-la dans le même ordre !</p>
-  </div>
-
   <!-- QUIZ -->
-  <div class="panneau" id="panneau-quiz">
+  <div class="panneau actif" id="panneau-quiz">
     <div class="carte" id="carteQuiz"></div>
+  </div>
+
+  <!-- ÉTUDE DES CLÉS -->
+  <div class="panneau" id="panneau-cles">
+    <div class="carte" id="carteCles"></div>
   </div>
 
   <!-- PARTITIONS -->
@@ -456,6 +443,7 @@
 
   <!-- BADGES -->
   <div class="panneau" id="panneau-badges">
+    <div class="carte" id="carteProgression"></div>
     <div class="carte">
       <p style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px; text-align:center; margin-top:0;">🏅 Mes badges</p>
       <div class="badges-grille" id="listeBadges"></div>
@@ -494,6 +482,34 @@ const COULEURS_NOTES = { do:'#ef5350', re:'#ff9e43', mi:'#ffd23f', fa:'#66c46b',
 const POSITIONS_PORTEE_SOL = { do:120, re:112, mi:104, fa:96, sol:88, la:80, si:72 };
 const POSITIONS_PORTEE_FA  = { si:32, la:40, sol:48, fa:56, mi:64, re:72, do:80 };
 
+// Explications pédagogiques : où se trouve chaque note sur la portée, pour chaque clé.
+const EXPLICATIONS_PORTEE = {
+  sol: {
+    do:  "le Do est juste en dessous de la portée, sur une petite ligne supplémentaire",
+    re:  "le Ré est dans l'espace juste en dessous de la portée",
+    mi:  "le Mi est sur la première ligne, la plus basse de la portée",
+    fa:  "le Fa est dans le premier espace, juste au-dessus de la première ligne",
+    sol: "le Sol est sur la deuxième ligne de la portée",
+    la:  "le La est dans le deuxième espace de la portée",
+    si:  "le Si est sur la troisième ligne, au milieu de la portée",
+  },
+  fa: {
+    si:  "le Si est juste au-dessus de la portée, dans le petit espace du haut",
+    la:  "le La est sur la cinquième ligne, tout en haut de la portée",
+    sol: "le Sol est dans le quatrième espace, en haut de la portée",
+    fa:  "le Fa est sur la quatrième ligne de la portée",
+    mi:  "le Mi est dans le troisième espace de la portée",
+    re:  "le Ré est sur la troisième ligne, au milieu de la portée",
+    do:  "le Do est dans le deuxième espace de la portée",
+  },
+};
+function explicationPortee(q){
+  const clef = q.clef || 'sol';
+  if(q.porteeDouble) return q.porteeDouble.map(n => EXPLICATIONS_PORTEE[clef][n]).join(', et ');
+  if(q.portee) return EXPLICATIONS_PORTEE[clef][q.portee];
+  return '';
+}
+
 function ligneStaffSVG(largeur){
   let lignes = '';
   for(let ly = 40; ly <= 104; ly += 16){
@@ -513,21 +529,22 @@ function iconeClef(clef, x){
   return `<path d="${TRACE_CLE_SOL}" fill="#6b5f94" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
 }
 
-function svgPortee(classeNote, clef){
+function svgPortee(classeNote, clef, neutre){
   clef = clef || 'sol';
   const positions = clef === 'fa' ? POSITIONS_PORTEE_FA : POSITIONS_PORTEE_SOL;
   const y = positions[classeNote];
   const ledger = (clef === 'sol' && classeNote === 'do') ? `<line x1="94" y1="120" x2="126" y2="120" stroke="#8677b3" stroke-width="2"/>` : '';
+  const couleur = neutre ? '#3a2e5c' : COULEURS_NOTES[classeNote];
   return `<svg width="220" height="150" viewBox="0 0 220 150" style="display:block;margin:0 auto 14px;">
     ${ligneStaffSVG(220)}
     <line x1="26" y1="40" x2="26" y2="104" stroke="#8677b3" stroke-width="3"/>
     ${iconeClef(clef, 34)}
     ${ledger}
-    <ellipse cx="110" cy="${y}" rx="9" ry="7" fill="${COULEURS_NOTES[classeNote]}" transform="rotate(-15 110 ${y})"/>
+    <ellipse cx="110" cy="${y}" rx="9" ry="7" fill="${couleur}" transform="rotate(-15 110 ${y})"/>
   </svg>`;
 }
 
-function svgPorteeSequence(sequenceClasses, indexActif, clef){
+function svgPorteeSequence(sequenceClasses, indexActif, clef, neutre){
   clef = clef || 'sol';
   const positions = clef === 'fa' ? POSITIONS_PORTEE_FA : POSITIONS_PORTEE_SOL;
   const pas = 36, marge = 46;
@@ -542,7 +559,8 @@ function svgPorteeSequence(sequenceClasses, indexActif, clef){
     const halo = estActif ? `<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="${COULEURS_NOTES[classe]}" stroke-width="2.5" opacity="0.6"/>` : '';
     const rayon = estActif ? 10 : 8;
     const opacite = estFaite ? 0.4 : (estActif ? 1 : 0.9);
-    notesHTML += `${ledger}${halo}<ellipse cx="${x}" cy="${y}" rx="${rayon}" ry="${rayon-2}" fill="${COULEURS_NOTES[classe]}" opacity="${opacite}" transform="rotate(-15 ${x} ${y})"/>`;
+    const couleur = neutre ? '#3a2e5c' : COULEURS_NOTES[classe];
+    notesHTML += `${ledger}${halo}<ellipse cx="${x}" cy="${y}" rx="${rayon}" ry="${rayon-2}" fill="${couleur}" opacity="${opacite}" transform="rotate(-15 ${x} ${y})"/>`;
   });
   return { largeur, svg: `<svg width="${largeur}" height="150" viewBox="0 0 ${largeur} 150" style="display:block;">
     ${ligneStaffSVG(largeur)}
@@ -556,15 +574,13 @@ let audioCtx = null;
 
 /* ===================== BADGES ===================== */
 const BADGES = [
-  { id:'premiere_note', icone:'🎵', nom:'Première note', desc:'Joue ta toute première note.' },
-  { id:'explorateur', icone:'🌈', nom:'Explorateur des couleurs', desc:'Essaie les 7 notes colorées.' },
-  { id:'melodie_memoire_5', icone:'🧠', nom:'Bonne mémoire', desc:'Atteins le niveau 5 du jeu de mémoire.' },
   { id:'chanson_droite', icone:'🖐️', nom:'Petit pianiste', desc:'Termine une chanson main droite.' },
   { id:'chanson_gauche', icone:'✋', nom:'Petit bassiste', desc:'Termine une chanson main gauche.' },
   { id:'duo', icone:'🎼', nom:'Chef d\'orchestre', desc:'Termine une chanson à deux mains.' },
   { id:'quiz_facile', icone:'🌱', nom:'Débutant en théorie', desc:'Termine le quiz niveau facile.' },
   { id:'quiz_moyen', icone:'⭐', nom:'Bonne oreille', desc:'Termine le quiz niveau moyen.' },
   { id:'quiz_fort', icone:'🔥', nom:'Lecteur de partition', desc:'Termine le quiz niveau fort.' },
+  { id:'quiz_portee', icone:'🎼', nom:'Champion de la portée', desc:'Termine l\'étude des clés.' },
 ];
 let badgesObtenus = [];
 try{ badgesObtenus = JSON.parse(localStorage.getItem('abel_badges') || '[]'); }catch(e){ badgesObtenus = []; }
@@ -580,6 +596,7 @@ function debloquerBadge(id){
 }
 
 function afficherBadges(){
+  afficherProgression();
   const conteneur = document.getElementById('listeBadges');
   conteneur.innerHTML = BADGES.map(b => {
     const obtenu = badgesObtenus.includes(b.id);
@@ -590,13 +607,36 @@ function afficherBadges(){
   }).join('');
 }
 
-let notesExplorees = new Set();
-try{ notesExplorees = new Set(JSON.parse(localStorage.getItem('abel_notes_explorees') || '[]')); }catch(e){}
-function noterNoteExploree(classe){
-  if(notesExplorees.has(classe)) return;
-  notesExplorees.add(classe);
-  try{ localStorage.setItem('abel_notes_explorees', JSON.stringify(Array.from(notesExplorees))); }catch(e){}
-  if(notesExplorees.size === 7) debloquerBadge('explorateur');
+function afficherProgression(){
+  const conteneur = document.getElementById('carteProgression');
+  if(!conteneur) return;
+
+  const ligne = (label, texte) =>
+    `<div class="progression-ligne"><span>${label}</span><span style="font-weight:700;">${texte}</span></div>`;
+
+  const ligneRecord = (niveau) => {
+    const v = quizRecords[niveau] || 0;
+    return ligne(LABELS_NIVEAU[niveau], v > 0 ? (v + ' / ' + NB_QUESTIONS_NIVEAU[niveau]) : 'Pas encore joué');
+  };
+
+  const quizHTML = ['facile','moyen','fort'].map(ligneRecord).join('');
+  const clesHTML = ['cles_facile','cles_moyen','cles_fort'].map(ligneRecord).join('');
+
+  const chansonsTerminees = CHANSONS.filter(c => chansonRecords[c.titre] !== undefined).length;
+  const chansonsHTML = CHANSONS.map(c => {
+    const record = chansonRecords[c.titre];
+    return ligne(c.titre, record !== undefined ? ('✅ ' + record + ' s') : '⬜ Pas encore');
+  }).join('');
+
+  conteneur.innerHTML = `
+    <p style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px; text-align:center; margin-top:0;">📊 Ma progression</p>
+    <p class="regle" style="margin-top:0; font-weight:700; color:var(--ink);">📖 Quiz</p>
+    ${quizHTML}
+    <p class="regle" style="font-weight:700; color:var(--ink); margin-top:14px;">🎼 Étude des clés</p>
+    ${clesHTML}
+    <p class="regle" style="font-weight:700; color:var(--ink); margin-top:14px;">🎵 Partitions (${chansonsTerminees} / ${CHANSONS.length} terminées)</p>
+    ${chansonsHTML}
+  `;
 }
 
 let sonCoupe = false;
@@ -767,91 +807,27 @@ function allerA(nom){
   annulerVoixAbel();
   document.querySelectorAll('.onglet').forEach(o => o.classList.toggle('actif', o.dataset.p === nom));
   document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'panneau-' + nom));
-  if(nom !== 'quiz' && typeof arreterChronoQuiz === 'function') arreterChronoQuiz();
-  if(nom === 'quiz' && !quizDemarre) afficherAccueilQuiz();
+  const ongletActifQuiz = (cibleQuizId === 'carteCles') ? 'cles' : 'quiz'; // onglet qui héberge actuellement le quiz en cours
+  if(nom !== ongletActifQuiz && typeof arreterChronoQuiz === 'function') arreterChronoQuiz();
+  // quizDemarre est un drapeau partagé entre Quiz et Étude des clés : un quiz en cours dans l'AUTRE
+  // onglet ne doit pas empêcher celui-ci de réafficher son propre écran d'accueil (sinon il reste vide).
+  if(nom === 'quiz' && !(quizDemarre && cibleQuizId === 'carteQuiz')) afficherAccueilQuiz();
+  if(nom === 'cles' && !(quizDemarre && cibleQuizId === 'carteCles')) afficherAccueilCles();
   if(nom === 'partitions' && !partitionInitialisee){ initPartitions(); }
   if(nom === 'badges') afficherBadges();
-}
-
-/* ===================== PIANO LIBRE ===================== */
-creerClavier('clavierLibre', (index, bouton) => {
-  jouerNote(NOTES[index].freq);
-  flashTouche(bouton);
-  etincelleAu(bouton);
-  document.getElementById('porteeLibre').innerHTML = svgPortee(NOTES[index].classe);
-  debloquerBadge('premiere_note');
-  noterNoteExploree(NOTES[index].classe);
-});
-document.getElementById('porteeLibre').innerHTML = svgPortee('do');
-
-/* ===================== JEU DE MEMOIRE ===================== */
-let sequence = [], positionJoueur = 0, jeuActif = false, enDemonstration = false, record = 0;
-try{ record = parseInt(localStorage.getItem('abel_piano_record') || '0', 10) || 0; }catch(e){}
-document.getElementById('statRecord').textContent = record;
-
-creerClavier('clavierJeu', (index, bouton) => {
-  if(!jeuActif || enDemonstration) return;
-  jouerNote(NOTES[index].freq);
-  flashTouche(bouton);
-  if(index === sequence[positionJoueur]){
-    positionJoueur++;
-    if(positionJoueur === sequence.length){
-      document.getElementById('messageJeu').textContent = '🎉 Bravo !';
-      if(sequence.length % 3 === 0) parlerAbel('Bravo champion, tu as une super mémoire !');
-      if(sequence.length >= 5) debloquerBadge('melodie_memoire_5');
-      setTimeout(ajouterNote, 700);
-    }
-  } else {
-    finDeJeu();
-  }
-});
-function demarrerJeu(){
-  sequence = []; positionJoueur = 0; jeuActif = true;
-  document.getElementById('btnJouer').textContent = '🔁 Recommencer';
-  document.getElementById('statNiveau').textContent = '0';
-  parlerAbel('C\'est parti, regarde bien la mélodie !');
-  ajouterNote();
-}
-function ajouterNote(){
-  sequence.push(Math.floor(Math.random() * NOTES.length));
-  positionJoueur = 0;
-  document.getElementById('statNiveau').textContent = sequence.length;
-  document.getElementById('messageJeu').textContent = 'Regarde bien...';
-  jouerSequence();
-}
-function jouerSequence(){
-  enDemonstration = true;
-  const boutons = document.querySelectorAll('#clavierJeu .touche');
-  let i = 0;
-  const intervalle = setInterval(() => {
-    const idx = sequence[i];
-    jouerNote(NOTES[idx].freq);
-    flashTouche(boutons[idx]);
-    i++;
-    if(i >= sequence.length){
-      clearInterval(intervalle);
-      setTimeout(() => { enDemonstration = false; document.getElementById('messageJeu').textContent = 'À toi de jouer !'; }, 500);
-    }
-  }, 1300);
-}
-function finDeJeu(){
-  jeuActif = false;
-  const niveauAtteint = sequence.length - 1;
-  document.getElementById('messageJeu').textContent = niveauAtteint > 0
-    ? '😊 Tu as retenu ' + niveauAtteint + ' note(s). On réessaie ?' : '😊 On réessaie ?';
-  document.getElementById('btnJouer').textContent = '▶️ Recommencer';
-  parlerAbel(niveauAtteint >= 3 ? 'Bien joué champion, on refait un tour ?' : 'Pas grave champion, on réessaie ensemble !');
-  if(niveauAtteint > record){
-    record = niveauAtteint;
-    document.getElementById('statRecord').textContent = record;
-    try{ localStorage.setItem('abel_piano_record', String(record)); }catch(e){}
-  }
 }
 
 /* ===================== QUIZ DE THEORIE MUSICALE ===================== */
 function optNote(classe, estBonne){
   const n = NOTES[indexParClasse(classe)];
   return { t:n.nom, c:classe, ok:estBonne };
+}
+
+// Pour les questions "2 notes sur la portée" (niveau difficile du mode dédié) :
+// des options combinant deux notes, ex. "Do et Sol".
+function optPaire(classeA, classeB, estBonne){
+  const nomA = NOTES[indexParClasse(classeA)].nom, nomB = NOTES[indexParClasse(classeB)].nom;
+  return { t: nomA + ' et ' + nomB, ok: estBonne };
 }
 
 const BANQUE_QUIZ = [
@@ -878,21 +854,39 @@ const BANQUE_QUIZ = [
 
   // ---- FORT ----
   { niveau:'fort', texte:"Quand une musique va « fort », quel mot italien utilise-t-on ?", options:[{t:'Forte',ok:true},{t:'Piano',ok:false},{t:'Adagio',ok:false},{t:'Legato',ok:false}] },
-  { niveau:'fort', portee:'do', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('do',true),optNote('re',false),optNote('mi',false),optNote('sol',false)] },
-  { niveau:'fort', portee:'re', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('re',true),optNote('do',false),optNote('mi',false),optNote('fa',false)] },
-  { niveau:'fort', portee:'mi', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('mi',true),optNote('re',false),optNote('fa',false),optNote('sol',false)] },
-  { niveau:'fort', portee:'fa', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('fa',true),optNote('mi',false),optNote('sol',false),optNote('la',false)] },
-  { niveau:'fort', portee:'sol', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('sol',true),optNote('fa',false),optNote('la',false),optNote('si',false)] },
-  { niveau:'fort', portee:'la', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('la',true),optNote('sol',false),optNote('si',false),optNote('do',false)] },
-  { niveau:'fort', portee:'si', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('si',true),optNote('la',false),optNote('do',false),optNote('re',false)] },
+  { niveau:'fort', texte:"Quand une musique va « doucement », quel mot italien utilise-t-on ?", options:[{t:'Piano',ok:true},{t:'Forte',ok:false},{t:'Presto',ok:false},{t:'Legato',ok:false}] },
+  { niveau:'fort', texte:"Comment s'appelle une note qui dure deux temps ?", options:[{t:'Une blanche',ok:true},{t:'Une noire',ok:false},{t:'Une croche',ok:false},{t:'Une ronde',ok:false}] },
+  { niveau:'fort', texte:"Dans un tempo classique, combien de temps dure une noire ?", options:[{t:'1 temps',ok:true},{t:'2 temps',ok:false},{t:'4 temps',ok:false},{t:'Un demi-temps',ok:false}] },
+  { niveau:'fort', texte:"Comment appelle-t-on un morceau joué très vite ?", options:[{t:'Presto',ok:true},{t:'Adagio',ok:false},{t:'Largo',ok:false},{t:'Andante',ok:false}] },
+  { niveau:'fort', texte:"Quel symbole indique de faire une pause silencieuse ?", options:[{t:'Un silence',ok:true},{t:'Un dièse',ok:false},{t:'Un bémol',ok:false},{t:'Une clé',ok:false}] },
+  { niveau:'fort', texte:"Qu'est-ce qu'un dièse fait à une note ?", options:[{t:'Il la rend plus aiguë',ok:true},{t:'Il la rend plus grave',ok:false},{t:'Il la rend plus longue',ok:false},{t:'Il la rend plus forte',ok:false}] },
+  { niveau:'fort', texte:"Qu'est-ce qu'un bémol fait à une note ?", options:[{t:'Il la rend plus grave',ok:true},{t:'Il la rend plus aiguë',ok:false},{t:'Il la rend plus courte',ok:false},{t:'Il la rend plus douce',ok:false}] },
+  { niveauCles:'facile', portee:'do', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('do',true),optNote('re',false),optNote('mi',false),optNote('sol',false)] },
+  { niveauCles:'facile', portee:'re', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('re',true),optNote('do',false),optNote('mi',false),optNote('fa',false)] },
+  { niveauCles:'facile', portee:'mi', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('mi',true),optNote('re',false),optNote('fa',false),optNote('sol',false)] },
+  { niveauCles:'facile', portee:'fa', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('fa',true),optNote('mi',false),optNote('sol',false),optNote('la',false)] },
+  { niveauCles:'facile', portee:'sol', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('sol',true),optNote('fa',false),optNote('la',false),optNote('si',false)] },
+  { niveauCles:'facile', portee:'la', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('la',true),optNote('sol',false),optNote('si',false),optNote('do',false)] },
+  { niveauCles:'facile', portee:'si', clef:'sol', texte:"Quelle note est écrite sur cette portée ? (clé de sol)", options:[optNote('si',true),optNote('la',false),optNote('do',false),optNote('re',false)] },
 
-  { niveau:'fort', portee:'do', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('do',true),optNote('re',false),optNote('mi',false),optNote('sol',false)] },
-  { niveau:'fort', portee:'re', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('re',true),optNote('do',false),optNote('mi',false),optNote('fa',false)] },
-  { niveau:'fort', portee:'mi', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('mi',true),optNote('re',false),optNote('fa',false),optNote('sol',false)] },
-  { niveau:'fort', portee:'fa', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('fa',true),optNote('mi',false),optNote('sol',false),optNote('la',false)] },
-  { niveau:'fort', portee:'sol', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('sol',true),optNote('fa',false),optNote('la',false),optNote('si',false)] },
-  { niveau:'fort', portee:'la', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('la',true),optNote('sol',false),optNote('si',false),optNote('do',false)] },
-  { niveau:'fort', portee:'si', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('si',true),optNote('la',false),optNote('do',false),optNote('re',false)] },
+  { niveauCles:'moyen', portee:'do', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('do',true),optNote('re',false),optNote('mi',false),optNote('sol',false)] },
+  { niveauCles:'moyen', portee:'re', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('re',true),optNote('do',false),optNote('mi',false),optNote('fa',false)] },
+  { niveauCles:'moyen', portee:'mi', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('mi',true),optNote('re',false),optNote('fa',false),optNote('sol',false)] },
+  { niveauCles:'moyen', portee:'fa', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('fa',true),optNote('mi',false),optNote('sol',false),optNote('la',false)] },
+  { niveauCles:'moyen', portee:'sol', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('sol',true),optNote('fa',false),optNote('la',false),optNote('si',false)] },
+  { niveauCles:'moyen', portee:'la', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('la',true),optNote('sol',false),optNote('si',false),optNote('do',false)] },
+  { niveauCles:'moyen', portee:'si', clef:'fa', texte:"Quelle note est écrite sur cette portée ? (clé de fa)", options:[optNote('si',true),optNote('la',false),optNote('do',false),optNote('re',false)] },
+
+  // ---- NOTES SUR LA PORTÉE (difficile) : 2 notes à trouver en même temps ----
+  { niveauCles:'fort', porteeDouble:['do','sol'], clef:'sol', texte:"Quelles sont ces deux notes ? (clé de sol)", options:[optPaire('do','sol',true),optPaire('re','la',false),optPaire('mi','si',false),optPaire('fa','do',false)] },
+  { niveauCles:'fort', porteeDouble:['re','la'], clef:'sol', texte:"Quelles sont ces deux notes ? (clé de sol)", options:[optPaire('re','la',true),optPaire('do','sol',false),optPaire('mi','si',false),optPaire('fa','do',false)] },
+  { niveauCles:'fort', porteeDouble:['mi','si'], clef:'sol', texte:"Quelles sont ces deux notes ? (clé de sol)", options:[optPaire('mi','si',true),optPaire('re','la',false),optPaire('do','sol',false),optPaire('fa','do',false)] },
+  { niveauCles:'fort', porteeDouble:['fa','do'], clef:'sol', texte:"Quelles sont ces deux notes ? (clé de sol)", options:[optPaire('fa','do',true),optPaire('do','sol',false),optPaire('re','la',false),optPaire('mi','si',false)] },
+
+  { niveauCles:'fort', porteeDouble:['do','sol'], clef:'fa', texte:"Quelles sont ces deux notes ? (clé de fa)", options:[optPaire('do','sol',true),optPaire('re','la',false),optPaire('mi','si',false),optPaire('fa','do',false)] },
+  { niveauCles:'fort', porteeDouble:['re','la'], clef:'fa', texte:"Quelles sont ces deux notes ? (clé de fa)", options:[optPaire('re','la',true),optPaire('do','sol',false),optPaire('mi','si',false),optPaire('fa','do',false)] },
+  { niveauCles:'fort', porteeDouble:['mi','si'], clef:'fa', texte:"Quelles sont ces deux notes ? (clé de fa)", options:[optPaire('mi','si',true),optPaire('re','la',false),optPaire('do','sol',false),optPaire('fa','do',false)] },
+  { niveauCles:'fort', porteeDouble:['fa','do'], clef:'fa', texte:"Quelles sont ces deux notes ? (clé de fa)", options:[optPaire('fa','do',true),optPaire('do','sol',false),optPaire('re','la',false),optPaire('mi','si',false)] },
 ];
 
 const NB_QUESTIONS_QUIZ = 6;
@@ -907,14 +901,27 @@ function melanger(tableau){
   return copie;
 }
 
-const LABELS_NIVEAU = { facile:'🌱 Facile', moyen:'⭐ Moyen', fort:'🔥 Fort' };
+const LABELS_NIVEAU = {
+  facile:'🌱 Facile', moyen:'⭐ Moyen', fort:'🔥 Fort',
+  cles_facile:'🌱 Clé de sol', cles_moyen:'⭐ Clé de fa', cles_fort:'🔥 2 notes'
+};
+// Mode spécial : uniquement les questions de lecture de notes sur la portée (clé de sol et clé de fa).
+// On reprend toutes les questions qui ont une propriété "portee", quel que soit leur niveau d'origine,
+// et on les fait toutes passer (7 en clé de sol + 7 en clé de fa) pour bien couvrir les deux clés.
+const NB_QUESTIONS_NIVEAU = {
+  facile: NB_QUESTIONS_QUIZ, moyen: NB_QUESTIONS_QUIZ, fort: NB_QUESTIONS_QUIZ,
+  cles_facile: 7, cles_moyen: 7, cles_fort: 8
+};
 
-let quizRecords = { facile:0, moyen:0, fort:0 };
+let quizRecords = { facile:0, moyen:0, fort:0, cles_facile:0, cles_moyen:0, cles_fort:0 };
 try{ quizRecords = Object.assign(quizRecords, JSON.parse(localStorage.getItem('abel_quiz_records') || '{}')); }catch(e){}
+
+let cibleQuizId = 'carteQuiz'; // conteneur actuellement utilisé par le moteur de quiz : 'carteQuiz' (onglet Quiz) ou 'carteCles' (onglet Étude des clés)
 
 function afficherAccueilQuiz(){
   quizDemarre = false;
-  const ligneRecord = (niveau) => quizRecords[niveau] > 0 ? ` (record : ${quizRecords[niveau]}/${NB_QUESTIONS_QUIZ})` : '';
+  cibleQuizId = 'carteQuiz';
+  const ligneRecord = (niveau) => quizRecords[niveau] > 0 ? ` (record : ${quizRecords[niveau]}/${NB_QUESTIONS_NIVEAU[niveau]})` : '';
   document.getElementById('carteQuiz').innerHTML = `
     <div class="quiz-fin">
       <p style="font-family:'Fredoka',sans-serif;font-weight:700;font-size:18px;">🎵 Petit quiz de théorie musicale</p>
@@ -926,12 +933,43 @@ function afficherAccueilQuiz(){
   parlerAbel('Choisis un niveau : facile, moyen, ou fort !');
 }
 
+let modeTranquilleCles = false; // mode sans chronomètre, réservé à l'Étude des clés
+
+function afficherAccueilCles(){
+  quizDemarre = false;
+  cibleQuizId = 'carteCles';
+  const ligneRecord = (niveau) => quizRecords[niveau] > 0 ? ` (record : ${quizRecords[niveau]}/${NB_QUESTIONS_NIVEAU[niveau]})` : '';
+  document.getElementById('carteCles').innerHTML = `
+    <div class="quiz-fin">
+      <p style="font-family:'Fredoka',sans-serif;font-weight:700;font-size:18px;">🎼 Étude des clés</p>
+      <p class="regle" style="margin-top:6px;">Entraîne-toi à reconnaître les notes sur la portée. Choisis ton niveau !</p>
+      <label class="mode-tranquille-toggle">
+        <input type="checkbox" id="modeTranquilleCheckbox" ${modeTranquilleCles ? 'checked' : ''} onchange="modeTranquilleCles = this.checked;">
+        🐢 Mode tranquille (sans chronomètre)
+      </label>
+      <button class="bouton-jeu" onclick="demarrerQuiz('cles_facile')">🌱 Clé de sol${ligneRecord('cles_facile')}</button>
+      <button class="bouton-jeu" style="background:linear-gradient(135deg, var(--re), var(--mi));" onclick="demarrerQuiz('cles_moyen')">⭐ Clé de fa${ligneRecord('cles_moyen')}</button>
+      <button class="bouton-jeu" style="background:linear-gradient(135deg, var(--la), var(--si));" onclick="demarrerQuiz('cles_fort')">🔥 2 notes (sol et fa)${ligneRecord('cles_fort')}</button>
+    </div>`;
+  parlerAbel('Choisis ton niveau : clé de sol, clé de fa, ou deux notes !');
+}
+
 function demarrerQuiz(niveau){
   quizNiveau = niveau;
-  const banque = BANQUE_QUIZ.filter(q => q.niveau === niveau);
-  quizQuestions = melanger(banque).slice(0, Math.min(NB_QUESTIONS_QUIZ, banque.length));
+  cibleQuizId = niveau.startsWith('cles_') ? 'carteCles' : 'carteQuiz';
+  // On vide l'autre conteneur pour éviter que deux écrans (Quiz et Étude des clés) partagent
+  // les mêmes id (quizFeedback, zoneSuivantQuiz...) en même temps dans le document.
+  const autreId = (cibleQuizId === 'carteCles') ? 'carteQuiz' : 'carteCles';
+  const autreConteneur = document.getElementById(autreId);
+  if(autreConteneur) autreConteneur.innerHTML = '';
+
+  const banque = niveau.startsWith('cles_')
+    ? BANQUE_QUIZ.filter(q => q.niveauCles === niveau.replace('cles_', ''))
+    : BANQUE_QUIZ.filter(q => q.niveau === niveau);
+  const nb = NB_QUESTIONS_NIVEAU[niveau] || NB_QUESTIONS_QUIZ;
+  quizQuestions = melanger(banque).slice(0, Math.min(nb, banque.length));
   quizIndex = 0; quizScore = 0; quizResultats = []; quizDemarre = true;
-  parlerAbel('C\'est parti pour le niveau ' + niveau + ' !');
+  parlerAbel(niveau.startsWith('cles_') ? 'C\'est parti pour lire les notes sur la portée !' : 'C\'est parti pour le niveau ' + niveau + ' !');
   afficherQuestionQuiz();
 }
 
@@ -944,29 +982,36 @@ function arreterChronoQuiz(){
 
 function afficherQuestionQuiz(){
   const q = quizQuestions[quizIndex];
+  const sansChrono = cibleQuizId === 'carteCles' && modeTranquilleCles;
   const puces = quizResultats.map(r => `<div class="puce ${r ? 'faite' : 'ratee'}"></div>`).join('')
     + Array(quizQuestions.length - quizResultats.length).fill('<div class="puce"></div>').join('');
   const optionsMelangees = melanger(q.options);
+  const estQuestionPortee = !!(q.portee || q.porteeDouble); // lecture de portée : on ne doit pas pouvoir deviner par la couleur
   const optionsHTML = optionsMelangees.map((opt, i) => {
-    const classeCouleur = opt.c ? ' style="background:' + COULEURS_NOTES[opt.c] + ' !important;"' : '';
+    const classeCouleur = (opt.c && !estQuestionPortee) ? ' style="background:' + COULEURS_NOTES[opt.c] + ' !important;"' : '';
     return `<button class="quiz-opt" data-ok="${opt.ok}"${classeCouleur} onclick="repondreQuiz(this, ${opt.ok})">${opt.t}</button>`;
   }).join('');
-  const portee = q.portee ? svgPortee(q.portee, q.clef || 'sol') : '';
+  const portee = q.porteeDouble ? svgPorteeSequence(q.porteeDouble, -1, q.clef || 'sol', true).svg
+    : (q.portee ? svgPortee(q.portee, q.clef || 'sol', true) : '');
 
-  document.getElementById('carteQuiz').innerHTML = `
-    <div class="quiz-progression">${puces}</div>
+  const chronoHTML = sansChrono ? '' : `
     <div class="quiz-chrono-piste"><div class="quiz-chrono-barre" id="quizChronoBarre" style="width:100%;"></div></div>
-    <div class="quiz-chrono-nombre" id="quizChronoNombre">⏱️ ${DUREE_CHRONO_QUIZ} s</div>
+    <div class="quiz-chrono-nombre" id="quizChronoNombre">⏱️ ${DUREE_CHRONO_QUIZ} s</div>`;
+
+  document.getElementById(cibleQuizId).innerHTML = `
+    <div class="quiz-progression">${puces}</div>
+    ${chronoHTML}
     ${portee}
     <div class="quiz-question">${q.texte}</div>
     <div class="quiz-options">${optionsHTML}</div>
     <div id="quizFeedback" class="quiz-feedback"></div>
+    <div id="quizExplication" class="quiz-explication"></div>
     <div id="zoneSuivantQuiz"></div>`;
 
   const texteOptions = optionsMelangees.map(o => o.t).join(' ... ');
   const texteComplet = q.texte + ' ... ' + texteOptions;
 
-  parlerAbel(texteComplet, demarrerChronoQuiz, q.texte);
+  parlerAbel(texteComplet, sansChrono ? null : demarrerChronoQuiz, q.texte);
 }
 
 function demarrerChronoQuiz(){
@@ -1015,6 +1060,7 @@ function expirationTempsQuiz(){
 function repondreQuiz(bouton, estBonne){
   arreterChronoQuiz();
   annulerVoixAbel();
+  const q = quizQuestions[quizIndex];
 
   document.querySelectorAll('.quiz-opt').forEach(b => {
     b.disabled = true;
@@ -1030,6 +1076,19 @@ function repondreQuiz(bouton, estBonne){
     feedback.className = 'quiz-feedback ' + (estBonne ? 'ok' : 'non');
   }
 
+  // Pour les questions de lecture de portée, on explique où se trouve la note en cas d'erreur.
+  const estQuestionAvecExplication = !estBonne && (q.portee || q.porteeDouble);
+  let phraseExplication = '';
+  if(estQuestionAvecExplication){
+    phraseExplication = explicationPortee(q);
+    phraseExplication = phraseExplication.charAt(0).toUpperCase() + phraseExplication.slice(1) + '.';
+  }
+  const explication = document.getElementById('quizExplication');
+  if(explication){
+    explication.textContent = estQuestionAvecExplication ? ('💡 ' + phraseExplication) : '';
+    explication.className = 'quiz-explication' + (estQuestionAvecExplication ? ' visible' : '');
+  }
+
   const phrasesOk = ['Bravo champion, c\'est exact !', 'Super champion, bien joué !', 'Oui, tout à fait champion !'];
   const phrasesNon = ['Presque champion, on continue !', 'Pas tout à fait, mais tu progresses champion !', 'On retient pour la prochaine fois, champion !'];
 
@@ -1040,6 +1099,7 @@ function repondreQuiz(bouton, estBonne){
   if(!estBonne){
     const boutonCorrect = document.querySelector('.quiz-opt[data-ok="true"]');
     if(boutonCorrect) texteVoix += ' La bonne réponse était : ' + boutonCorrect.textContent + '.';
+    if(estQuestionAvecExplication) texteVoix += ' ' + phraseExplication;
   }
 
   parlerAbel(texteVoix);
@@ -1074,16 +1134,17 @@ function afficherFinQuiz(){
   if(quizNiveau === 'facile') debloquerBadge('quiz_facile');
   else if(quizNiveau === 'moyen') debloquerBadge('quiz_moyen');
   else if(quizNiveau === 'fort') debloquerBadge('quiz_fort');
+  else if(quizNiveau.startsWith('cles_')) debloquerBadge('quiz_portee');
 
-  document.getElementById('carteQuiz').innerHTML = `
+  document.getElementById(cibleQuizId).innerHTML = `
     <div class="quiz-fin">
       <p style="font-family:'Fredoka',sans-serif;font-weight:700;font-size:16px;">Quiz terminé ! (${LABELS_NIVEAU[quizNiveau]})</p>
       <div class="score">${quizScore} / ${total}</div>
       <p style="font-weight:700; color:${nouveauRecord ? '#ff9800' : 'var(--ink-soft)'}; font-size:13px;">
         ${nouveauRecord ? '🏆 Nouveau record !' : 'Record actuel : ' + quizRecords[quizNiveau] + ' / ' + total}
       </p>
-      <button class="bouton-jeu" onclick="demarrerQuiz('${quizNiveau}')">🔁 Rejouer ce niveau</button>
-      <button class="bouton-jeu" style="background:#888;" onclick="afficherAccueilQuiz()">↩️ Changer de niveau</button>
+      <button class="bouton-jeu" onclick="demarrerQuiz('${quizNiveau}')">🔁 Rejouer</button>
+      <button class="bouton-jeu" style="background:#888;" onclick="${quizNiveau.startsWith('cles_') ? 'afficherAccueilCles()' : 'afficherAccueilQuiz()'}">↩️ Changer de niveau</button>
     </div>`;
 }
 
@@ -1092,9 +1153,13 @@ const CHANSONS = [
   { titre:"Au clair de la lune", notesDroite:['do','do','do','re','mi','re','do','mi','re','re','do'], notesGauche:[] },
   { titre:"Frère Jacques", notesDroite:['do','re','mi','do','do','re','mi','do','mi','fa','sol','mi','fa','sol'], notesGauche:[] },
   { titre:"La gamme qui monte", notesDroite:['do','re','mi','fa','sol','la','si'], notesGauche:[] },
+  { titre:"Une souris verte", notesDroite:['sol','sol','sol','la','sol','fa','mi','do','re','mi'], notesGauche:[] },
+  { titre:"Meunier tu dors", notesDroite:['do','do','fa','fa','la','la','sol','fa','mi','mi','re','re','do'], notesGauche:[] },
   { titre:"Au clair de la lune (main gauche)", notesDroite:[], notesGauche:['do','do','do','re','mi','re','do','mi','re','re','do'] },
   { titre:"Ainsi font font font", notesDroite:[], notesGauche:['sol','sol','sol','mi','mi','mi','la','la','sol','fa','mi','re','do','re','mi','fa','sol','sol','sol','mi','do'] },
+  { titre:"Pomme de reinette (main gauche)", notesDroite:[], notesGauche:['do','re','mi','do','re','mi','sol','fa','mi','re','do'] },
   { titre:"Au clair de la lune (à deux mains)", notesDroite:['do','do','do','re','mi','re','do','mi','re','re','do'], notesGauche:['do','do','do','re','mi','re','do','mi','re','re','do'] },
+  { titre:"Frère Jacques (à deux mains)", notesDroite:['do','re','mi','do','do','re','mi','do','mi','fa','sol','mi','fa','sol'], notesGauche:['do','re','mi','do','do','re','mi','do','mi','fa','sol','mi','fa','sol'] },
 ];
 let partitionInitialisee = false, chansonActive = 0, curseurDroite = 0, curseurGauche = 0, demoEnCours = false;
 let tempsDebutChanson = null;
@@ -1255,6 +1320,9 @@ function afficherDateJour(){
 }
 afficherDateJour();
 setInterval(afficherDateJour, 60000);
+
+/* ===================== INITIALISATION DE L'ONGLET PAR DÉFAUT (QUIZ) ===================== */
+afficherAccueilQuiz();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
