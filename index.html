@@ -14,15 +14,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --sky-a: #fff6e9;
-    --sky-b: #ffe9d6;
-    --ink: #3a2e5c;
-    --ink-soft: #6b5f94;
+    --sky-a: #eafaff;
+    --sky-b: #cdf1fb;
+    --ink: #16506b;
+    --ink-soft: #4a90a8;
     --card: #ffffff;
-    --card-line: #f0e6ff;
-    --shadow: rgba(90, 60, 130, 0.18);
+    --card-line: #b6e8f7;
+    --shadow: rgba(0, 150, 199, 0.18);
     --vert-ok: #43a047;
     --rouge-non: #e53935;
+    --note-neutre: #111111;
 
     --do:   #ef5350;
     --re:   #ff9e43;
@@ -34,13 +35,13 @@
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --sky-a: #221a3d; --sky-b: #2c2154; --ink: #f3eeff; --ink-soft: #cabdf0;
-      --card: #2f2555; --card-line: #4a3c86; --shadow: rgba(0,0,0,0.4);
+      --sky-a: #0e2c47; --sky-b: #163d5e; --ink: #ffffff; --ink-soft: #a9d3e8;
+      --card: #1a3958; --card-line: #2f5f80; --shadow: rgba(0,0,0,0.5); --note-neutre: #ffffff;
     }
   }
   :root[data-theme="dark"]{
-    --sky-a: #221a3d; --sky-b: #2c2154; --ink: #f3eeff; --ink-soft: #cabdf0;
-    --card: #2f2555; --card-line: #4a3c86; --shadow: rgba(0,0,0,0.4);
+    --sky-a: #0e2c47; --sky-b: #163d5e; --ink: #ffffff; --ink-soft: #a9d3e8;
+    --card: #1a3958; --card-line: #2f5f80; --shadow: rgba(0,0,0,0.5); --note-neutre: #ffffff;
   }
 
   *{ box-sizing: border-box; }
@@ -513,7 +514,7 @@ function explicationPortee(q){
 function ligneStaffSVG(largeur){
   let lignes = '';
   for(let ly = 40; ly <= 104; ly += 16){
-    lignes += `<line x1="10" y1="${ly}" x2="${largeur-10}" y2="${ly}" stroke="#8677b3" stroke-width="2"/>`;
+    lignes += `<line x1="10" y1="${ly}" x2="${largeur-10}" y2="${ly}" stroke="var(--ink-soft)" stroke-width="2"/>`;
   }
   return lignes;
 }
@@ -523,24 +524,24 @@ const TRACE_CLE_FA = "M564 -704Q582 -704 594.5 -691.0Q607 -678 607.0 -661.0Q607 
 function iconeClef(clef, x){
   if(clef === 'fa'){
     const echelle = 0.068, ty = 89.48, tx = x - 75 * echelle;
-    return `<path d="${TRACE_CLE_FA}" fill="#6b5f94" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
+    return `<path d="${TRACE_CLE_FA}" fill="var(--ink-soft)" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
   }
   const echelle = 0.087, ty = 92.6, tx = x - 120 * echelle;
-  return `<path d="${TRACE_CLE_SOL}" fill="#6b5f94" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
+  return `<path d="${TRACE_CLE_SOL}" fill="var(--ink-soft)" transform="matrix(${echelle},0,0,${echelle},${tx.toFixed(2)},${ty})"/>`;
 }
 
 function svgPortee(classeNote, clef, neutre){
   clef = clef || 'sol';
   const positions = clef === 'fa' ? POSITIONS_PORTEE_FA : POSITIONS_PORTEE_SOL;
   const y = positions[classeNote];
-  const ledger = (clef === 'sol' && classeNote === 'do') ? `<line x1="94" y1="120" x2="126" y2="120" stroke="#8677b3" stroke-width="2"/>` : '';
-  const couleur = neutre ? '#3a2e5c' : COULEURS_NOTES[classeNote];
+  const ledger = (clef === 'sol' && classeNote === 'do') ? `<line x1="94" y1="120" x2="126" y2="120" stroke="var(--ink-soft)" stroke-width="2"/>` : '';
+  const couleur = neutre ? 'var(--note-neutre)' : COULEURS_NOTES[classeNote];
   return `<svg width="220" height="150" viewBox="0 0 220 150" style="display:block;margin:0 auto 14px;">
     ${ligneStaffSVG(220)}
-    <line x1="26" y1="40" x2="26" y2="104" stroke="#8677b3" stroke-width="3"/>
+    <line x1="26" y1="40" x2="26" y2="104" stroke="var(--ink-soft)" stroke-width="3"/>
     ${iconeClef(clef, 34)}
     ${ledger}
-    <ellipse cx="110" cy="${y}" rx="9" ry="7" fill="${couleur}" transform="rotate(-15 110 ${y})"/>
+    <ellipse cx="110" cy="${y}" rx="12" ry="9" fill="${couleur}" stroke="var(--card)" stroke-width="2.5" transform="rotate(-15 110 ${y})"/>
   </svg>`;
 }
 
@@ -555,16 +556,16 @@ function svgPorteeSequence(sequenceClasses, indexActif, clef, neutre){
     const y = positions[classe];
     const estActif = i === indexActif;
     const estFaite = i < indexActif;
-    const ledger = (clef === 'sol' && classe === 'do') ? `<line x1="${x-13}" y1="120" x2="${x+13}" y2="120" stroke="#8677b3" stroke-width="2"/>` : '';
-    const halo = estActif ? `<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="${COULEURS_NOTES[classe]}" stroke-width="2.5" opacity="0.6"/>` : '';
-    const rayon = estActif ? 10 : 8;
+    const ledger = (clef === 'sol' && classe === 'do') ? `<line x1="${x-13}" y1="120" x2="${x+13}" y2="120" stroke="var(--ink-soft)" stroke-width="2"/>` : '';
+    const halo = estActif ? `<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="${COULEURS_NOTES[classe]}" stroke-width="2.5" opacity="0.6"/>` : '';
+    const rayon = estActif ? 12 : 10;
     const opacite = estFaite ? 0.4 : (estActif ? 1 : 0.9);
-    const couleur = neutre ? '#3a2e5c' : COULEURS_NOTES[classe];
-    notesHTML += `${ledger}${halo}<ellipse cx="${x}" cy="${y}" rx="${rayon}" ry="${rayon-2}" fill="${couleur}" opacity="${opacite}" transform="rotate(-15 ${x} ${y})"/>`;
+    const couleur = neutre ? 'var(--note-neutre)' : COULEURS_NOTES[classe];
+    notesHTML += `${ledger}${halo}<ellipse cx="${x}" cy="${y}" rx="${rayon}" ry="${rayon-2}" fill="${couleur}" stroke="var(--card)" stroke-width="2" opacity="${opacite}" transform="rotate(-15 ${x} ${y})"/>`;
   });
   return { largeur, svg: `<svg width="${largeur}" height="150" viewBox="0 0 ${largeur} 150" style="display:block;">
     ${ligneStaffSVG(largeur)}
-    <line x1="10" y1="40" x2="10" y2="104" stroke="#8677b3" stroke-width="3"/>
+    <line x1="10" y1="40" x2="10" y2="104" stroke="var(--ink-soft)" stroke-width="3"/>
     ${iconeClef(clef, 16)}
     ${notesHTML}
   </svg>` };
@@ -919,6 +920,7 @@ try{ quizRecords = Object.assign(quizRecords, JSON.parse(localStorage.getItem('a
 let cibleQuizId = 'carteQuiz'; // conteneur actuellement utilisé par le moteur de quiz : 'carteQuiz' (onglet Quiz) ou 'carteCles' (onglet Étude des clés)
 
 function afficherAccueilQuiz(){
+  annulerVoixAbel();
   quizDemarre = false;
   cibleQuizId = 'carteQuiz';
   const ligneRecord = (niveau) => quizRecords[niveau] > 0 ? ` (record : ${quizRecords[niveau]}/${NB_QUESTIONS_NIVEAU[niveau]})` : '';
@@ -936,6 +938,7 @@ function afficherAccueilQuiz(){
 let modeTranquilleCles = false; // mode sans chronomètre, réservé à l'Étude des clés
 
 function afficherAccueilCles(){
+  annulerVoixAbel();
   quizDemarre = false;
   cibleQuizId = 'carteCles';
   const ligneRecord = (niveau) => quizRecords[niveau] > 0 ? ` (record : ${quizRecords[niveau]}/${NB_QUESTIONS_NIVEAU[niveau]})` : '';
@@ -955,6 +958,7 @@ function afficherAccueilCles(){
 }
 
 function demarrerQuiz(niveau){
+  annulerVoixAbel(); // coupe net la voix de l'écran précédent (ex : "Choisis ton niveau...")
   quizNiveau = niveau;
   cibleQuizId = niveau.startsWith('cles_') ? 'carteCles' : 'carteQuiz';
   // On vide l'autre conteneur pour éviter que deux écrans (Quiz et Étude des clés) partagent
@@ -1215,6 +1219,7 @@ function afficherRecordChanson(){
 }
 
 function choisirChanson(i){
+  annulerVoixAbel();
   chansonActive = i; curseurDroite = 0; curseurGauche = 0; tempsDebutChanson = null;
   document.querySelectorAll('.chanson-btn').forEach((b, idx) => b.classList.toggle('actif', idx === i));
   majAffichagePartition();
