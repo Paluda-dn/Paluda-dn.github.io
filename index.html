@@ -398,6 +398,11 @@
   <header>
     <h1 class="titre">Le petit Abel apprend le piano</h1>
     <p id="dateJour" style="text-align:center; color:var(--ink-soft); font-weight:700; font-size:12px; margin:-8px 0 14px;"></p>
+    <p class="regle" style="max-width:520px; margin:0 auto 14px;">
+      Abel accompagne les enfants dans leurs premiers pas au piano : reconnaître les notes,
+      lire une portée et jouer de petites mélodies. Quatre activités sont proposées ci-dessous,
+      du quiz de théorie musicale à l'apprentissage de vraies chansons sur un clavier coloré.
+    </p>
   </header>
 
   <div class="onglets">
@@ -409,16 +414,31 @@
 
   <!-- QUIZ -->
   <div class="panneau actif" id="panneau-quiz">
+    <p class="regle" style="margin-top:0;">
+      Ce quiz teste les connaissances de base sur la musique et le piano : le nom des notes,
+      leurs couleurs, le rythme et le vocabulaire musical. Trois niveaux de difficulté sont
+      disponibles, du plus simple (facile) au plus exigeant (fort), pour progresser à son rythme.
+    </p>
     <div class="carte" id="carteQuiz"></div>
   </div>
 
   <!-- ÉTUDE DES CLÉS -->
   <div class="panneau" id="panneau-cles">
+    <p class="regle" style="margin-top:0;">
+      L'étude des clés apprend à lire une portée musicale : reconnaître une note en clé de sol,
+      puis en clé de fa, et enfin identifier deux notes jouées en même temps. Un mode tranquille,
+      sans chronomètre, permet de s'entraîner sans pression.
+    </p>
     <div class="carte" id="carteCles"></div>
   </div>
 
   <!-- PARTITIONS -->
   <div class="panneau" id="panneau-partitions">
+    <p class="regle" style="margin-top:0;">
+      Ici, l'enfant apprend de vraies petites chansons (Au clair de la lune, Frère Jacques,
+      Une souris verte, et bien d'autres) en suivant la portée et les notes colorées affichées
+      à l'écran, main droite et main gauche, jusqu'à pouvoir les jouer en entier sur le clavier.
+    </p>
     <div class="liste-chansons" id="listeChansons"></div>
     <div id="recordChansonActuelle" style="text-align:center; font-weight:700; color:var(--ink-soft); font-size:13px; margin-bottom:14px;"></div>
 
@@ -444,6 +464,11 @@
 
   <!-- BADGES -->
   <div class="panneau" id="panneau-badges">
+    <p class="regle" style="margin-top:0;">
+      Cet onglet récapitule la progression de l'enfant dans chaque activité — quiz, étude des
+      clés et chansons apprises — ainsi que les badges gagnés au fil de ses réussites, pour
+      l'encourager à continuer à s'entraîner.
+    </p>
     <div class="carte" id="carteProgression"></div>
     <div class="carte">
       <p style="font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px; text-align:center; margin-top:0;">🏅 Mes badges</p>
