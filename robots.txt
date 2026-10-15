@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://paluda-dn.github.io/sitemap.xml

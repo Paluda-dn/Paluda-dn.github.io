@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Le petit Abel apprend le piano</title>
+<title>Le petit Abel apprend le piano – jeu et guides pour apprendre le piano aux enfants</title>
+<meta name="description" content="Application gratuite pour initier les enfants au piano : notes colorées, lecture de portée, comptines, quiz. Avec des guides pratiques pour les parents.">
+<meta name="google-adsense-account" content="ca-pub-7313613931904605">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6a6fd8">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7313613931904605" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
@@ -338,6 +339,10 @@
   @media (max-width: 420px){ .badges-grille{ grid-template-columns: 1fr; } }
 
   footer{ text-align:center; margin-top: 22px; color: var(--ink-soft); font-size: 12px; font-weight: 600; }
+  footer a{ color: var(--ink-soft); }
+  .liste-guides{ list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .liste-guides a{ display:block; padding:10px 12px; border-radius:12px; background:var(--sky-a); border:2px solid var(--card-line); color:var(--ink); font-weight:700; font-size:13px; text-decoration:none; }
+  @media (max-width: 520px){ .liste-guides{ grid-template-columns:1fr; } }
 
   @media (max-width: 420px){
     .touche{ height: 112px; font-size: 11px; }
@@ -476,16 +481,34 @@
     </div>
   </div>
 
-  <ins class="adsbygoogle"
-       style="display:block; margin-top:18px;"
-       data-ad-client="ca-pub-7313613931904605"
-       data-ad-slot="2527999481"
-       data-ad-format="auto"
-       data-full-width-responsive="true"
-       data-tag-for-child-directed-treatment="1"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  <section class="carte" style="margin-top:22px;">
+    <h2 style="font-family:'Fredoka',sans-serif; font-size:19px; text-align:center; margin:0 0 6px;">📚 Guides pour les parents</h2>
+    <p class="regle" style="margin:0 0 12px;">Des conseils simples pour accompagner votre enfant au piano, même sans être musicien.</p>
+    <ul class="liste-guides">
+      <li><a href="guides/apprendre-les-notes-de-musique.html">Comment apprendre les notes de musique à un enfant</a></li>
+      <li><a href="guides/a-quel-age-commencer-le-piano.html">À quel âge commencer le piano ?</a></li>
+      <li><a href="guides/lire-la-cle-de-sol.html">Lire une partition en clé de sol</a></li>
+      <li><a href="guides/comprendre-la-cle-de-fa.html">Comprendre la clé de fa</a></li>
+      <li><a href="guides/position-des-mains-et-doigtes.html">Position des mains et doigtés</a></li>
+      <li><a href="guides/comptines-faciles-au-piano.html">Comptines faciles à jouer au piano</a></li>
+      <li><a href="guides/le-rythme-explique-aux-enfants.html">Le rythme expliqué aux enfants</a></li>
+      <li><a href="guides/methode-des-couleurs.html">Pourquoi apprendre avec des notes en couleurs ?</a></li>
+      <li><a href="guides/combien-de-temps-pratiquer.html">Combien de temps pratiquer chaque jour ?</a></li>
+      <li><a href="guides/motiver-son-enfant.html">Motiver son enfant à jouer du piano</a></li>
+      <li><a href="guides/choisir-un-premier-clavier.html">Choisir un premier clavier</a></li>
+    </ul>
+    <p style="text-align:center; margin:12px 0 0;"><a href="guides/index.html" style="font-weight:700; color:var(--la);">Voir tous les guides →</a></p>
+  </section>
 
-  <footer>© danny</footer>
+  <footer>
+    <nav class="pied-liens">
+      <a href="guides/index.html">Guides</a> ·
+      <a href="a-propos.html">À propos</a> ·
+      <a href="contact.html">Contact</a> ·
+      <a href="confidentialite.html">Confidentialité</a>
+    </nav>
+    <p style="margin:8px 0 0;">© 2026 Danny – Le petit Abel apprend le piano</p>
+  </footer>
 </div>
 
 <script>
